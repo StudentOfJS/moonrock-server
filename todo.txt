@@ -1,0 +1,22 @@
+create a DB for newsletter and login
+
+
+db collection - signedup
+
+signupSchema =  = object.shape({
+  email: string,
+  firstTime: boolean,
+  lastEmail: number,
+})
+
+userSchema = object.shape({
+  email: string,
+  ethAddress: string,
+  firstName: string,
+  lastname: string,
+  password: string,
+})
+
+post request with email -> check db for email -> save to db
+include firstTime flag in db
+delete request with email  -> check db for email -> remove from db
