@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +21,8 @@ func handleRequests() {
 	r.PUT("/newsletter", Newsletter)
 
 	// log server error
-	log.Fatal(http.ListenAndServe(":30000", nil))
+	log.Fatal(r.Run("4000"))
+
 }
 
 func main() {
