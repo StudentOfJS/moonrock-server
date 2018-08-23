@@ -9,14 +9,12 @@ import (
 )
 
 func server() {
-	r := gin.Default()    // Init Router
-	r.Use(gin.Logger())   // log to Stdout
-	r.Use(gin.Recovery()) // recover from panics with 500
-	r.Use(cors.Default()) // enable Cross-Origin Resource Sharing
-	RegisterAPI(r)        // register router
-	// log server error
-	log.Fatal(r.Run(":4000"))
-
+	r := gin.Default()        // Init Router
+	r.Use(gin.Logger())       // log to Stdout
+	r.Use(gin.Recovery())     // recover from panics with 500
+	r.Use(cors.Default())     // enable Cross-Origin Resource Sharing
+	RegisterAPI(r)            // register router
+	log.Fatal(r.Run(":4000")) // log server error
 }
 
 func main() {
