@@ -1,5 +1,7 @@
 package main
 
+import "github.com/gin-gonic/gin"
+
 // NewsletterSignup is used for the newsletter signup
 type NewsletterSignup struct {
 	Email string `json:"email"`
@@ -26,4 +28,8 @@ type User struct {
 	LastName       string          `json:"last_name"`
 	Login          *Login          `json:"login_details"`
 	NewsletterData *NewsletterData `json:"newsletter-data"`
+}
+
+func Newsletter(c *gin.Context) {
+
 }
