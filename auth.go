@@ -61,20 +61,20 @@ func (*TestUserVerifier) AddClaims(credential, tokenID, tokenType, scope string)
 	return claims, nil
 }
 
-// StoreTokenId saves the token Id generated for the user
-func (*TestUserVerifier) StoreTokenId(credential, tokenId, refreshTokenID, tokenType string) error {
+// StoreTokenID saves the token Id generated for the user
+func (*TestUserVerifier) StoreTokenID(credential, tokenID, refreshTokenID, tokenType string) error {
 	return nil
 }
 
 // AddProperties provides additional information to the token response
-func (*TestUserVerifier) AddProperties(credential, tokenId, tokenType string, scope string) (map[string]string, error) {
+func (*TestUserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
 	props := make(map[string]string)
 	props["customerName"] = "Gopher"
 	return props, nil
 }
 
-// ValidateTokenId validates token Id
-func (*TestUserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenType string) error {
+// ValidateTokenID validates token Id
+func (*TestUserVerifier) ValidateTokenID(credential, tokenID, refreshTokenID, tokenType string) error {
 	return nil
 }
 
