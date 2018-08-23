@@ -16,7 +16,7 @@ var (
 
 func createBuckets(c string) {
 	Db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucket([]byte(c))
+		_, err := tx.CreateBucket([]byte(c))
 		if err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -31,7 +31,8 @@ func HandleDB() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Fatal(createBucket("newsletter"))
-	// createBucket("users")
-	defer db.Close()
+	createBuckets("newsletter")
+	createBuckets("users")
+
+	defer Db.Close()
 }
