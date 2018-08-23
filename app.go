@@ -19,7 +19,7 @@ func handleRequests() {
 		})
 	})
 	// Route Handlers / Endpoints
-	r.POST("/newsletter", Newsletter)
+	r.PUT("/newsletter", Newsletter)
 
 	// log server error
 	log.Fatal(http.ListenAndServe(":30000", nil))
