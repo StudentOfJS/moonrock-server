@@ -5,21 +5,15 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	cors "gopkg.in/gin-contrib/cors.v1"
 )
 
-func handleRequests() {
-	// Init Router
-	r := gin.Default()
-
-	// Test Ping
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	// Route Handlers / Endpoints
-	r.PUT("/newsletter", Newsletter)
-
+func server() {
+	r := gin.Default()    // Init Router
+	r.Use(gin.Logger())   // log to Stdout
+	r.Use(gin.Recovery()) // recover from panics with 500
+	r.Use(cors.Default()) // enable Cross-Origin Resource Sharing
+	RegisterAPI(r)        // register router
 	// log server error
 	log.Fatal(r.Run(":4000"))
 
@@ -28,5 +22,5 @@ func handleRequests() {
 func main() {
 	fmt.Println("Rest API v1.0")
 	HandleDB()
-	handleRequests()
+	server()
 }
