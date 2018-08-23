@@ -37,6 +37,7 @@ type User struct {
 	NewsletterData *NewsletterData `json:"newsletter-data"`
 }
 
+// Newsletter - signs up from PUT request with email to newsletter
 func Newsletter(c *gin.Context) {
 	if c.PostForm("key") == "" || c.PostForm("value") == "" {
 		c.String(200, "no email provided")
@@ -57,17 +58,22 @@ func Newsletter(c *gin.Context) {
 			c.String(200, "error  uuid")
 			return fmt.Errorf("uuid: %s", err)
 		}
-		ub, err := b.CreateBucketIfNotExists([]byte(c.PostForm("value")))
+		ub, err := b.CreateBucketIfNotExists([]byte(u))
 		if err != nil {
 			c.String(200, "error  creating user bucket")
 			return fmt.Errorf("userBucket: %s", err)
 		}
-		err = ub.Put([]byte("id"), []byte(u))
+		err = ub.Put([]byte("email"), []byte(c.PostForm("value")))
 		if err != nil {
-			c.String(200, "error writing id")
-			return fmt.Errorf("create id: %s", err)
+			c.String(200, "error writing email")
+			return fmt.Errorf("create email: %s", err)
 		}
 		err = ub.Put([]byte("first"), []byte("true"))
+		if err != nil {
+			c.String(200, "error writing KV | n")
+			return fmt.Errorf("create kv: %s", err)
+		}
+		err = ub.Put([]byte("last"), []byte("0"))
 		if err != nil {
 			c.String(200, "error writing KV | n")
 			return fmt.Errorf("create kv: %s", err)
