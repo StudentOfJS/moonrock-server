@@ -21,7 +21,7 @@ func handleRequests() {
 	r.PUT("/newsletter", Newsletter)
 
 	// log server error
-	log.Fatal(r.Run("4000"))
+	log.Fatal(r.Run(":4000"))
 
 }
 

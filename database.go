@@ -43,7 +43,8 @@ func BackupHandleFunc(w http.ResponseWriter, req *http.Request) {
 // HandleDB handles the setup of bolt db
 func HandleDB() {
 	// Start boltDB
-	Db, err := bolt.Open("my.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	var err error
+	Db, err = bolt.Open("my.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}
