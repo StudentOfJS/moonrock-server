@@ -39,11 +39,11 @@ type User struct {
 
 // Newsletter - signs up from PUT request with email to newsletter
 func Newsletter(c *gin.Context) {
-	if c.PostForm("key") == "" || c.PostForm("value") == "" {
+	if c.PostForm("email") == "" {
 		c.String(200, "no email provided")
 	}
 	Db.Update(func(tx *bolt.Tx) error {
-		u2, err := uuid.FromString(c.PostForm("value"))
+		u2, err := uuid.FromString(c.PostForm("email"))
 		if err != nil {
 			return fmt.Errorf("uuid went wrong: %s", err)
 		}
@@ -63,7 +63,7 @@ func Newsletter(c *gin.Context) {
 			c.String(200, "error  creating user bucket")
 			return fmt.Errorf("userBucket: %s", err)
 		}
-		err = ub.Put([]byte("email"), []byte(c.PostForm("value")))
+		err = ub.Put([]byte("email"), []byte(c.PostForm("email")))
 		if err != nil {
 			c.String(200, "error writing email")
 			return fmt.Errorf("create email: %s", err)
