@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/satori/go.uuid"
 	"gopkg.in/validator.v2"
 )
 
@@ -47,4 +48,10 @@ func EmailNotValid(email string) bool {
 		return true
 	}
 	return false
+}
+
+// CreateUUID takes an email and return s an id or error
+func CreateUUID(email string) (id uuid.UUID, err error) {
+	id, err = uuid.FromString(email)
+	return id, err
 }
