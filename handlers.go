@@ -114,3 +114,59 @@ func Login(c *gin.Context) {
 		return nil
 	})
 }
+
+func Register(c *gin.Context) {
+	user := c.PostForm("user")
+	if user == "" {
+		c.String(400, "invalid")
+	}
+	password := c.PostForm("password")
+	if password == "" {
+		c.String(400, "invalid")
+	}
+	// Generate "hash" to store from user password
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		// TODO: Properly handle error
+		c.String(401, "invalid")
+	}
+	Db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("login"))
+		v := b.Get([]byte(user))
+		if v != nil {
+			c.String(400, "invalid")
+			return fmt.Errorf("user exists: %s", err)
+		}
+		Db.Update(func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("login"))
+			u := tx.Bucket([]byte("users"))
+
+			err = b.Put([]byte(user), []byte(password))
+			if err != nil {
+				c.String(400, "error")
+				return fmt.Errorf("login creation: %s", err)
+			}
+			err = u.Put([]byte("first"), []byte("true"))
+			if err != nil {
+				c.String(200, "error writing KV | n")
+				return fmt.Errorf("create kv: %s", err)
+			}
+
+			bu, err := b.CreateBucketIfNotExists([]byte(user))
+			if err != nil {
+				c.String(200, "error  creating user bucket")
+				return fmt.Errorf("userBucket: %s", err)
+			}
+			err = bu.Put([]byte("last"), []byte("0"))
+			if err != nil {
+				c.String(200, "error writing KV | n")
+				return fmt.Errorf("create kv: %s", err)
+			}
+
+			return nil
+		})
+		return nil
+	})
+	c.String(200, "ok")
+
+}
