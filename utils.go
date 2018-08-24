@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/validator.v2"
@@ -24,31 +26,31 @@ type UserTest struct {
 	LastName  string `validate:"min=1",max=255`
 }
 
-// LoginNotValid returns true if validation fails for username or password
-func LoginNotValid(u string, p string) bool {
+// LoginValid returns true if validation fails for username or password
+func LoginValid(u string, p string) error {
 	loginRequest := LoginTest{Username: u, Password: p}
 	if errs := validator.Validate(loginRequest); errs != nil {
-		return true
+		return errors.New("invalid login")
 	}
-	return false
+	return nil
 }
 
-// UserNotValid returns true if validation fails for user details
-func UserNotValid(e string, f string, l string) bool {
+// UserValid returns true if validation fails for user details
+func UserValid(e string, f string, l string) error {
 	signupRequest := UserTest{Ethereum: e, FirstName: f, LastName: f}
 	if errs := validator.Validate(signupRequest); errs != nil {
-		return true
+		return errors.New("invalid user")
 	}
-	return false
+	return nil
 }
 
 // EmailNotValid returns true if validation fails for email
-func EmailNotValid(email string) bool {
+func EmailNotValid(email string) error {
 	emailTest := EmailTest{Email: email}
 	if errs := validator.Validate(emailTest); errs != nil {
-		return true
+		return errors.New("invalid email")
 	}
-	return false
+	return nil
 }
 
 // CreateUUID takes an email and return s an id or error
@@ -58,17 +60,17 @@ func CreateUUID(email string) (id uuid.UUID, err error) {
 }
 
 // LoginCheck accepts a username and a password and returns true if checks pass
-func LoginCheck(u string, p string) bool {
-	if LoginNotValid(u, p) {
-		return false
+func LoginCheck(u string, p string) error {
+	if err := LoginValid(u, p); err != nil {
+		return err
 	}
 	var user User
 	if err := Db.One("UserName", u, &user); err != nil {
-		return false
+		return errors.New("invalid login")
 	}
 	// Comparing the password with the hash
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(p)); err != nil {
-		return false
+		return errors.New("invalid login")
 	}
-	return true
+	return nil
 }

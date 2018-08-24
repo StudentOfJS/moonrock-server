@@ -58,7 +58,6 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 func LoginHandler(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-
 	if LoginCheck(username, password) {
 		// @todo: return token to client
 		c.String(200, "ok")

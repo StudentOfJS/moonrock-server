@@ -9,7 +9,7 @@ import (
 	"github.com/maxzerbini/oauth"
 )
 
-// RegisterAPI registers api endpoints witht he auth middleware
+// RegisterAPI registers api endpoints with the auth middleware
 func RegisterAPI(router *gin.Engine) {
 	authorized := router.Group("/")
 	// use the Bearer Athentication middleware
@@ -19,7 +19,7 @@ func RegisterAPI(router *gin.Engine) {
 			"message": "pong",
 		})
 	})
-	authorized.PUT("/newsletter", Newsletter)
+	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
 
 	s := oauth.NewOAuthBearerServer(
 		"U#cXHY_w4Vg$FCaJ7-jtjr##xMrmgydy",
