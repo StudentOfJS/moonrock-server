@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/validator.v2"
 )
 
@@ -24,8 +25,8 @@ type UserTest struct {
 }
 
 // LoginNotValid returns true if validation fails for username or password
-func LoginNotValid(username string, password string) bool {
-	loginRequest := LoginTest{Username: username, Password: password}
+func LoginNotValid(u string, p string) bool {
+	loginRequest := LoginTest{Username: u, Password: p}
 	if errs := validator.Validate(loginRequest); errs != nil {
 		return true
 	}
@@ -54,4 +55,20 @@ func EmailNotValid(email string) bool {
 func CreateUUID(email string) (id uuid.UUID, err error) {
 	id, err = uuid.FromString(email)
 	return id, err
+}
+
+// LoginCheck accepts a username and a password and returns true if checks pass
+func LoginCheck(u string, p string) bool {
+	if LoginNotValid(u, p) {
+		return false
+	}
+	var user User
+	if err := Db.One("UserName", u, &user); err != nil {
+		return false
+	}
+	// Comparing the password with the hash
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(p)); err != nil {
+		return false
+	}
+	return true
 }

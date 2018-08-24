@@ -9,8 +9,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// SubscriptionData stores details for sending emails
-type SubscriptionData struct {
+// Subscription stores details for sending emails
+type Subscription struct {
 	Allowed      bool   `storm:"index"` // this field will be indexed
 	Confirmed    bool   // this field will not be indexed`
 	Email        string `storm:"unique"`       // this field will be indexed with a unique constraint
@@ -19,7 +19,7 @@ type SubscriptionData struct {
 	LastNL       int16  `storm:"index"`        // this field will not be indexed
 }
 
-// login struct contains the user login data
+// Login struct contains the user login data
 type Login struct {
 	Password []byte // this field will not be indexed
 	Username string `storm:"unique"` // this field will be indexed with a unique constraint
@@ -41,7 +41,7 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 	if EmailNotValid(email) {
 		c.String(400, "invalid email")
 	}
-	tokenSaleUpdates := SubscriptionData{
+	tokenSaleUpdates := Subscription{
 		Allowed:      true,
 		Confirmed:    false,
 		Email:        email,
@@ -75,8 +75,8 @@ func LoginHandler(c *gin.Context) {
 
 }
 
-// RegisterUser validates the user signup form and saves to db
-func RegisterUser(c *gin.Context) {
+// RegisterHandler validates the user signup form and saves to db
+func RegisterHandler(c *gin.Context) {
 	newsletter := c.PostForm("newsletter")
 	ethereum := c.PostForm("ethereum")
 	firstname := c.PostForm("firstname")
@@ -91,24 +91,25 @@ func RegisterUser(c *gin.Context) {
 	if UserNotValid(ethereum, firstname, lastname) {
 		c.String(400, "invalid user details")
 	}
-
-	user := User{
-		Email:            email,
-		EthereumAddress:  "",
-		FirstName:        "",
-		Group:            "newsletter",
-		ID:               CreateUUID(email),
-		LastName:         "",
-		SubscriptionData: newsletterData,
-		Password:         "",
-		Username:         "",
-	}
 	// Generate "hash" to store from username password
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		// TODO: Properly handle error
 		c.String(401, "invalid")
 	}
+
+	login := Login{
+		Password: hash,
+		Username: username,
+	}
+	user := User{
+		EthereumAddress: ethereum,
+		FirstName:       firstname,
+		Group:           "public_investor",
+		LastName:        lastname,
+		Login:           login,
+	}
+
 	Db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("login"))
 		v := b.Get([]byte(username))
