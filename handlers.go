@@ -10,24 +10,31 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// NewsletterSignup is used for the newsletter signup
-type NewsletterSignup struct {
-	Email string `json:"email"`
-}
-
 // NewsletterData stores details for sending emails
 type NewsletterData struct {
-	Allowed bool              `json:"allowed"`
-	Email   *NewsletterSignup `json:"email"`
-	First   bool              `json:"first_email"`
-	Last    int16             `json:"last_sent"`
+	Allowed bool  `storm:"index"` // this field will be indexed
+	Welcome bool  // this field will not be indexed`
+	LastNL  int16 `storm:"index"` // this field will not be indexed
+}
+
+// User struct contains all the user data
+type User struct {
+	Email           string `storm:"unique"` // this field will be indexed with a unique constraint
+	EthereumAddress string // this field will not be indexed
+	FirstName       string // this field will not be indexed
+	Group           string `storm:"index"` // this field will be indexed
+	ID              string `storm:"id"`    // primary key
+	LastName        string // this field will not be indexed
+	NewsletterData  `storm:"inline"`
+	Password        string // this field will not be indexed
+	Username        string `storm:"index"`
 }
 
 // Newsletter - signs up from PUT request with email to newsletter
 func Newsletter(c *gin.Context) {
 	email := c.PostForm("email")
-	if email == "" {
-		c.String(200, "no email provided")
+	if EmailNotValid(email) {
+		c.String(200, "invalid email")
 	}
 	Db.Update(func(tx *bolt.Tx) error {
 		u2, err := uuid.FromString(email)
