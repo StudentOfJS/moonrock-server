@@ -3,104 +3,76 @@ package main
 import (
 	"fmt"
 
-	"github.com/satori/go.uuid"
-
+	"github.com/asdine/storm"
 	bolt "github.com/coreos/bbolt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// NewsletterData stores details for sending emails
-type NewsletterData struct {
-	Allowed bool  `storm:"index"` // this field will be indexed
-	Welcome bool  // this field will not be indexed`
-	LastNL  int16 `storm:"index"` // this field will not be indexed
+// SubscriptionData stores details for sending emails
+type SubscriptionData struct {
+	Allowed      bool   `storm:"index"` // this field will be indexed
+	Confirmed    bool   // this field will not be indexed`
+	Email        string `storm:"unique"`       // this field will be indexed with a unique constraint
+	Group        string `storm:"index"`        // this field will be indexed
+	NewsLetterID int    `storm:"id,increment"` // primary key with auto increment
+	LastNL       int16  `storm:"index"`        // this field will not be indexed
+}
+
+// login struct contains the user login data
+type Login struct {
+	Password []byte // this field will not be indexed
+	Username string `storm:"unique"` // this field will be indexed with a unique constraint
 }
 
 // User struct contains all the user data
 type User struct {
-	Email           string `storm:"unique"` // this field will be indexed with a unique constraint
 	EthereumAddress string // this field will not be indexed
 	FirstName       string // this field will not be indexed
-	Group           string `storm:"index"` // this field will be indexed
-	ID              string `storm:"id"`    // primary key
+	Group           string `storm:"index"`        // this field will be indexed
+	ID              int    `storm:"id,increment"` // primary key with auto increment
 	LastName        string // this field will not be indexed
-	NewsletterData  `storm:"inline"`
-	Password        string // this field will not be indexed
-	Username        string `storm:"index"`
+	Login           `storm:"inline"`
 }
 
-// Newsletter - signs up from PUT request with email to newsletter
-func Newsletter(c *gin.Context) {
+// TokenSaleUpdatesHandler - signs up from PUT request with email to newsletter
+func TokenSaleUpdatesHandler(c *gin.Context) {
 	email := c.PostForm("email")
 	if EmailNotValid(email) {
-		c.String(200, "invalid email")
+		c.String(400, "invalid email")
 	}
-	Db.Update(func(tx *bolt.Tx) error {
-		u2, err := uuid.FromString(email)
-		if err != nil {
-			return fmt.Errorf("uuid went wrong: %s", err)
-		}
-		b, err := tx.CreateBucketIfNotExists([]byte(c.PostForm("newsletter")))
-
-		if err != nil {
-			c.String(200, "error  creating bucket | n")
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		u, err := u2.MarshalText()
-		if err != nil {
-			c.String(200, "error  uuid")
-			return fmt.Errorf("uuid: %s", err)
-		}
-		ub, err := b.CreateBucketIfNotExists([]byte(u))
-		if err != nil {
-			c.String(200, "error  creating user bucket")
-			return fmt.Errorf("userBucket: %s", err)
-		}
-		err = ub.Put([]byte("email"), []byte(email))
-		if err != nil {
-			c.String(200, "error writing email")
-			return fmt.Errorf("create email: %s", err)
-		}
-		err = ub.Put([]byte("first"), []byte("true"))
-		if err != nil {
-			c.String(200, "error writing KV | n")
-			return fmt.Errorf("create kv: %s", err)
-		}
-		err = ub.Put([]byte("last"), []byte("0"))
-		if err != nil {
-			c.String(200, "error writing KV | n")
-			return fmt.Errorf("create kv: %s", err)
-		}
-
-		return nil
-	})
-
+	tokenSaleUpdates := SubscriptionData{
+		Allowed:      true,
+		Confirmed:    false,
+		Email:        email,
+		Group:        "token_sale_updates",
+		NewsLetterID: 0,
+		LastNL:       0,
+	}
+	if err := Db.Save(&tokenSaleUpdates); err == storm.ErrAlreadyExists {
+		c.String(400, "already signed up")
+	}
 	c.String(200, "ok")
 }
 
-// Login accepts a username and a password and returns access token or error
-func Login(c *gin.Context) error {
+// LoginHandler accepts a username and a password and returns access token or error
+func LoginHandler(c *gin.Context){
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	if LoginNotValid(username, password) {
 		c.String(400, "invalid login")
 		return fmt.Errorf("invalid login")
 	}
+	var user User
+	if err := db.One("UserName", username, &user); err != nil {
+		c.String(400, "invalid login")
+	}
 
-	// get hashed password from db
-	Db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("login"))
-		hash := b.Get([]byte(username))
-		if hash == nil {
-			c.String(400, "invalid login")
-			return fmt.Errorf("username doesn't exist")
-		}
-		// Comparing the password with the hash
-		if err := bcrypt.CompareHashAndPassword(hash, []byte(password)); err != nil {
-			c.String(401, "invalid login")
-			return fmt.Errorf("passwords don't match: %s", err)
-		}
+	// Comparing the password with the hash
+	if err = bcrypt.CompareHashAndPassword(hash, []byte(password)); err != nil {
+		c.String(401, "invalid login")
+		return fmt.Errorf("passwords don't match: %s", err)
+	}
 		// @todo: return token to username
 		return nil
 	})
@@ -125,6 +97,17 @@ func RegisterUser(c *gin.Context) {
 		c.String(400, "invalid user details")
 	}
 
+	user := User{
+		Email:            email,
+		EthereumAddress:  "",
+		FirstName:        "",
+		Group:            "newsletter",
+		ID:               CreateUUID(email),
+		LastName:         "",
+		SubscriptionData: newsletterData,
+		Password:         "",
+		Username:         "",
+	}
 	// Generate "hash" to store from username password
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
