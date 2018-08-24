@@ -37,7 +37,7 @@ type User struct {
 // TokenSaleUpdatesHandler - signs up from PUT request with email to newsletter
 func TokenSaleUpdatesHandler(c *gin.Context) {
 	email := c.PostForm("email")
-	if err := EmailNotValid(email); err != nil {
+	if err := EmailValid(email); err != nil {
 		c.String(400, "invalid email")
 	}
 	tokenSaleUpdates := Subscription{
@@ -58,12 +58,11 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 func LoginHandler(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-	if LoginCheck(username, password) {
+	if err := LoginCheck(username, password); err != nil {
 		// @todo: return token to client
-		c.String(200, "ok")
-
-	} else {
 		c.String(400, "invalid login")
+	} else {
+		c.String(200, "ok")
 	}
 }
 
@@ -78,11 +77,11 @@ func RegisterHandler(c *gin.Context) {
 	password := c.PostForm("password")
 	username := c.PostForm("username")
 
-	if LoginNotValid(username, password) {
+	if err := LoginValid(username, password); err != nil {
 		c.String(400, "invalid login details")
 	}
 
-	if UserNotValid(ethereum, firstname, lastname) {
+	if err := UserValid(ethereum, firstname, lastname); err != nil {
 		c.String(400, "invalid user details")
 	}
 	// Generate "hash" to store from username password
