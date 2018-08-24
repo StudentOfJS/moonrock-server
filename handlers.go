@@ -88,14 +88,21 @@ func Newsletter(c *gin.Context) {
 	c.String(200, "ok")
 }
 
+func LoginValidationFail(username string, password string) bool {
+	loginRequest := LoginDetails{Username: username, Password: password}
+	if errs := validator.Validate(loginRequest); errs != nil {
+		return true
+	}
+	return false
+}
+
 // Login accepts a username and a password and returns access token or error
 func Login(c *gin.Context) error {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-	loginRequest := LoginDetails{Username: username, Password: password}
-	if errs := validator.Validate(loginRequest); errs != nil {
+	if LoginValidationFail(username, password) {
 		c.String(400, "invalid login")
-		return fmt.Errorf("invalid login: %s", errs)
+		return fmt.Errorf("invalid login")
 	}
 
 	// get hashed password from db
@@ -114,17 +121,23 @@ func Login(c *gin.Context) error {
 		// @todo: return token to username
 		return nil
 	})
+	c.String(200, "ok")
+	return nil
 }
 
+// Register
 func Register(c *gin.Context) {
-	username := c.PostForm("username")
-	if username == "" || !validateEmail(username) {
-		c.String(400, "invalid")
-	}
+	newsletter := c.PostForm("newsletter")
+	ethereum := c.PostForm("ethereum")
+	firstname := c.PostForm("firstname")
+	lastname := c.PostForm("lastname")
 	password := c.PostForm("password")
-	if password == "" {
-		c.String(400, "invalid")
+	username := c.PostForm("username")
+
+	if LoginValidationFail(username, password) {
+		c.String(400, "invalid login")
 	}
+
 	// Generate "hash" to store from username password
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

@@ -1,6 +1,14 @@
 package main
 
-type NewUserRequest struct {
-	Username string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
-	Password string `validate:"min=8",max=255`
+import (
+	"gopkg.in/validator.v2"
+)
+
+// LoginNotValid returns true if validation fails for username or password
+func LoginNotValid(username string, password string) bool {
+	loginRequest := LoginDetails{Username: username, Password: password}
+	if errs := validator.Validate(loginRequest); errs != nil {
+		return true
+	}
+	return false
 }
