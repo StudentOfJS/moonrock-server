@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/satori/go.uuid"
+	"gopkg.in/validator.v2"
 
 	bolt "github.com/coreos/bbolt"
 	"github.com/gin-gonic/gin"
@@ -25,15 +26,15 @@ type NewsletterData struct {
 
 // Login is for basic username and password login - may swap for SSO
 type LoginDetails struct {
-	Password string `json:"password"`
-	Username string `json:"email"`
+	Username string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
+	Password string `validate:"min=8",max=255`
 }
 
 // User is encompases all held user data
 type User struct {
-	Ethereum       string          `json:"ethaddress"`
-	FirstName      string          `json:"first_name"`
-	LastName       string          `json:"last_name"`
+	Ethereum       string          `validate"regexp=^0x[a-fA-F0-9]{40}$"`
+	FirstName      string          `validate:"min=1",max=255`
+	LastName       string          `validate:"min=1",max=255`
 	LoginDetails   *LoginDetails   `json:"login_details"`
 	NewsletterData *NewsletterData `json:"newsletter-data"`
 }
@@ -88,43 +89,43 @@ func Newsletter(c *gin.Context) {
 }
 
 // Login accepts a username and a password and returns access token or error
-func Login(c *gin.Context) {
-	user := c.PostForm("user")
-	if user == "" || !validateEmail(user) {
-		c.String(400, "invalid login")
-	}
+func Login(c *gin.Context) error {
+	username := c.PostForm("username")
 	password := c.PostForm("password")
-	if password == "" {
+	loginRequest := LoginDetails{Username: username, Password: password}
+	if errs := validator.Validate(loginRequest); errs != nil {
 		c.String(400, "invalid login")
+		return fmt.Errorf("invalid login: %s", errs)
 	}
+
 	// get hashed password from db
 	Db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("login"))
-		hash := b.Get([]byte(user))
+		hash := b.Get([]byte(username))
 		if hash == nil {
 			c.String(400, "invalid login")
-			return fmt.Errorf("user doesn't exist")
+			return fmt.Errorf("username doesn't exist")
 		}
 		// Comparing the password with the hash
 		if err := bcrypt.CompareHashAndPassword(hash, []byte(password)); err != nil {
 			c.String(401, "invalid login")
 			return fmt.Errorf("passwords don't match: %s", err)
 		}
-		// @todo: return token to user
+		// @todo: return token to username
 		return nil
 	})
 }
 
 func Register(c *gin.Context) {
-	user := c.PostForm("user")
-	if user == "" || !validateEmail(user) {
+	username := c.PostForm("username")
+	if username == "" || !validateEmail(username) {
 		c.String(400, "invalid")
 	}
 	password := c.PostForm("password")
 	if password == "" {
 		c.String(400, "invalid")
 	}
-	// Generate "hash" to store from user password
+	// Generate "hash" to store from username password
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		// TODO: Properly handle error
@@ -132,16 +133,16 @@ func Register(c *gin.Context) {
 	}
 	Db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("login"))
-		v := b.Get([]byte(user))
+		v := b.Get([]byte(username))
 		if v != nil {
 			c.String(400, "invalid")
-			return fmt.Errorf("user exists: %s", err)
+			return fmt.Errorf("username exists: %s", err)
 		}
 		Db.Update(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("login"))
 			u := tx.Bucket([]byte("users"))
 
-			err = b.Put([]byte(user), []byte(password))
+			err = b.Put([]byte(username), []byte(password))
 			if err != nil {
 				c.String(400, "error")
 				return fmt.Errorf("login creation: %s", err)
@@ -152,9 +153,9 @@ func Register(c *gin.Context) {
 				return fmt.Errorf("create kv: %s", err)
 			}
 
-			bu, err := b.CreateBucketIfNotExists([]byte(user))
+			bu, err := b.CreateBucketIfNotExists([]byte(username))
 			if err != nil {
-				c.String(200, "error  creating user bucket")
+				c.String(200, "error  creating username bucket")
 				return fmt.Errorf("userBucket: %s", err)
 			}
 			err = bu.Put([]byte("last"), []byte("0"))
