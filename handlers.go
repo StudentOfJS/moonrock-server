@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/satori/go.uuid"
-	"gopkg.in/validator.v2"
 
 	bolt "github.com/coreos/bbolt"
 	"github.com/gin-gonic/gin"
@@ -24,7 +23,7 @@ type NewsletterData struct {
 	Last    int16             `json:"last_sent"`
 }
 
-// Login is for basic username and password login - may swap for SSO
+// LoginDetails contains validation for login details
 type LoginDetails struct {
 	Username string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
 	Password string `validate:"min=8",max=255`
@@ -88,19 +87,11 @@ func Newsletter(c *gin.Context) {
 	c.String(200, "ok")
 }
 
-func LoginValidationFail(username string, password string) bool {
-	loginRequest := LoginDetails{Username: username, Password: password}
-	if errs := validator.Validate(loginRequest); errs != nil {
-		return true
-	}
-	return false
-}
-
 // Login accepts a username and a password and returns access token or error
 func Login(c *gin.Context) error {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-	if LoginValidationFail(username, password) {
+	if LoginNotValid(username, password) {
 		c.String(400, "invalid login")
 		return fmt.Errorf("invalid login")
 	}
@@ -134,7 +125,7 @@ func Register(c *gin.Context) {
 	password := c.PostForm("password")
 	username := c.PostForm("username")
 
-	if LoginValidationFail(username, password) {
+	if LoginNotValid(username, password) {
 		c.String(400, "invalid login")
 	}
 
