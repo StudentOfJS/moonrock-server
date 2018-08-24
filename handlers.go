@@ -56,28 +56,23 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 }
 
 // LoginHandler accepts a username and a password and returns access token or error
-func LoginHandler(c *gin.Context){
+func LoginHandler(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 	if LoginNotValid(username, password) {
 		c.String(400, "invalid login")
-		return fmt.Errorf("invalid login")
 	}
 	var user User
-	if err := db.One("UserName", username, &user); err != nil {
+	if err := Db.One("UserName", username, &user); err != nil {
 		c.String(400, "invalid login")
 	}
-
 	// Comparing the password with the hash
-	if err = bcrypt.CompareHashAndPassword(hash, []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
 		c.String(401, "invalid login")
-		return fmt.Errorf("passwords don't match: %s", err)
 	}
-		// @todo: return token to username
-		return nil
-	})
+	// @todo: return token to client
 	c.String(200, "ok")
-	return nil
+
 }
 
 // RegisterUser validates the user signup form and saves to db
