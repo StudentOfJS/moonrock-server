@@ -44,8 +44,8 @@ func UserValid(e string, f string, l string) error {
 	return nil
 }
 
-// EmailNotValid returns true if validation fails for email
-func EmailNotValid(email string) error {
+// EmailValid returns true if validation fails for email
+func EmailValid(email string) error {
 	emailTest := EmailTest{Email: email}
 	if errs := validator.Validate(emailTest); errs != nil {
 		return errors.New("invalid email")

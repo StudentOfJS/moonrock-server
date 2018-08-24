@@ -37,7 +37,7 @@ type User struct {
 // TokenSaleUpdatesHandler - signs up from PUT request with email to newsletter
 func TokenSaleUpdatesHandler(c *gin.Context) {
 	email := c.PostForm("email")
-	if EmailNotValid(email) {
+	if err := EmailNotValid(email); err != nil {
 		c.String(400, "invalid email")
 	}
 	tokenSaleUpdates := Subscription{
