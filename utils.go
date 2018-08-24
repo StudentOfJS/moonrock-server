@@ -4,6 +4,11 @@ import (
 	"gopkg.in/validator.v2"
 )
 
+// EmailTest contains validation for an email address
+type EmailTest struct {
+	Email string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
+}
+
 // LoginDetails contains validation for login details
 type LoginDetails struct {
 	Username string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
@@ -30,6 +35,15 @@ func LoginNotValid(username string, password string) bool {
 func UserNotValid(e string, f string, l string) bool {
 	signupRequest := UserDetails{Ethereum: e, FirstName: f, LastName: f}
 	if errs := validator.Validate(signupRequest); errs != nil {
+		return true
+	}
+	return false
+}
+
+// EmailNotValid returns true if validation fails for email
+func EmailNotValid(email string) bool {
+	emailTest := EmailTest{Email: email}
+	if errs := validator.Validate(emailTest); errs != nil {
 		return true
 	}
 	return false
