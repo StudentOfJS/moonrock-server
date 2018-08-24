@@ -90,7 +90,7 @@ func Newsletter(c *gin.Context) {
 // Login accepts a username and a password and returns access token or error
 func Login(c *gin.Context) {
 	user := c.PostForm("user")
-	if user == "" {
+	if user == "" || !validateEmail(user) {
 		c.String(400, "invalid login")
 	}
 	password := c.PostForm("password")
@@ -117,7 +117,7 @@ func Login(c *gin.Context) {
 
 func Register(c *gin.Context) {
 	user := c.PostForm("user")
-	if user == "" {
+	if user == "" || !validateEmail(user) {
 		c.String(400, "invalid")
 	}
 	password := c.PostForm("password")
