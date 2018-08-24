@@ -3,16 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
-	"strconv"
-	"time"
 
+	"github.com/asdine/storm"
 	bolt "github.com/coreos/bbolt"
 )
 
 var (
 	// Db is the bolt db connection
-	Db *bolt.DB
+	Db *storm.DB
 )
 
 // CreateBucket takes a bucket name as string and creates a bucket or error
@@ -26,29 +24,13 @@ func CreateBucket(c string) {
 	})
 }
 
-// BackupHandleFunc returns backup of db for download
-func BackupHandleFunc(w http.ResponseWriter, req *http.Request) {
-	err := Db.View(func(tx *bolt.Tx) error {
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Header().Set("Content-Disposition", `attachment; filename="my.db"`)
-		w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
-		_, err := tx.WriteTo(w)
-		return err
-	})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
 // HandleDB handles the setup of bolt db
 func HandleDB() {
 	// Start boltDB
 	var err error
-	Db, err = bolt.Open("my.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	Db, err = storm.Open("my.db")
 	if err != nil {
 		log.Fatal(err)
 	}
-	CreateBucket("users")
-
 	defer Db.Close()
 }

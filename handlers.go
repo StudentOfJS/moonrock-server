@@ -101,8 +101,8 @@ func Login(c *gin.Context) error {
 	return nil
 }
 
-// Register
-func Register(c *gin.Context) {
+// RegisterUser validates the user signup form and saves to db
+func RegisterUser(c *gin.Context) {
 	newsletter := c.PostForm("newsletter")
 	ethereum := c.PostForm("ethereum")
 	firstname := c.PostForm("firstname")
