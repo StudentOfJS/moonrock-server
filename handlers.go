@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/asdine/storm"
-	bolt "github.com/coreos/bbolt"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -27,6 +24,8 @@ type Login struct {
 
 // User struct contains all the user data
 type User struct {
+	Address         string // this field will not be indexed
+	CountryCode     string // this field will not be indexed
 	EthereumAddress string // this field will not be indexed
 	FirstName       string // this field will not be indexed
 	Group           string `storm:"index"`        // this field will be indexed
@@ -59,33 +58,29 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 func LoginHandler(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
-	if LoginNotValid(username, password) {
-		c.String(400, "invalid login")
-	}
-	var user User
-	if err := Db.One("UserName", username, &user); err != nil {
-		c.String(400, "invalid login")
-	}
-	// Comparing the password with the hash
-	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(password)); err != nil {
-		c.String(401, "invalid login")
-	}
-	// @todo: return token to client
-	c.String(200, "ok")
 
+	if LoginCheck(username, password) {
+		// @todo: return token to client
+		c.String(200, "ok")
+
+	} else {
+		c.String(400, "invalid login")
+	}
 }
 
 // RegisterHandler validates the user signup form and saves to db
 func RegisterHandler(c *gin.Context) {
-	newsletter := c.PostForm("newsletter")
+	address := c.PostForm("address")
+	country := c.PostForm("country")
 	ethereum := c.PostForm("ethereum")
 	firstname := c.PostForm("firstname")
 	lastname := c.PostForm("lastname")
+	newsletter := c.PostForm("newsletter")
 	password := c.PostForm("password")
 	username := c.PostForm("username")
 
 	if LoginNotValid(username, password) {
-		c.String(400, "invalid login")
+		c.String(400, "invalid login details")
 	}
 
 	if UserNotValid(ethereum, firstname, lastname) {
@@ -102,7 +97,10 @@ func RegisterHandler(c *gin.Context) {
 		Password: hash,
 		Username: username,
 	}
+
 	user := User{
+		Address:         address,
+		CountryCode:     country,
 		EthereumAddress: ethereum,
 		FirstName:       firstname,
 		Group:           "public_investor",
@@ -110,43 +108,9 @@ func RegisterHandler(c *gin.Context) {
 		Login:           login,
 	}
 
-	Db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("login"))
-		v := b.Get([]byte(username))
-		if v != nil {
-			c.String(400, "invalid")
-			return fmt.Errorf("username exists: %s", err)
-		}
-		Db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("login"))
-			u := tx.Bucket([]byte("users"))
-
-			err = b.Put([]byte(username), []byte(password))
-			if err != nil {
-				c.String(400, "error")
-				return fmt.Errorf("login creation: %s", err)
-			}
-			err = u.Put([]byte("first"), []byte("true"))
-			if err != nil {
-				c.String(200, "error writing KV | n")
-				return fmt.Errorf("create kv: %s", err)
-			}
-
-			bu, err := b.CreateBucketIfNotExists([]byte(username))
-			if err != nil {
-				c.String(200, "error  creating username bucket")
-				return fmt.Errorf("userBucket: %s", err)
-			}
-			err = bu.Put([]byte("last"), []byte("0"))
-			if err != nil {
-				c.String(200, "error writing KV | n")
-				return fmt.Errorf("create kv: %s", err)
-			}
-
-			return nil
-		})
-		return nil
-	})
+	if err := Db.Save(&user); err == storm.ErrAlreadyExists {
+		c.String(400, "already signed up")
+	}
+	// @todo considering logging in after signup
 	c.String(200, "ok")
-
 }
