@@ -7,6 +7,7 @@ import (
 
 	bolt "github.com/coreos/bbolt"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // NewsletterSignup is used for the newsletter signup
@@ -23,7 +24,7 @@ type NewsletterData struct {
 }
 
 // Login is for basic username and password login - may swap for SSO
-type Login struct {
+type LoginDetails struct {
 	Password string `json:"password"`
 	Username string `json:"email"`
 }
@@ -33,7 +34,7 @@ type User struct {
 	Ethereum       string          `json:"ethaddress"`
 	FirstName      string          `json:"first_name"`
 	LastName       string          `json:"last_name"`
-	Login          *Login          `json:"login_details"`
+	LoginDetails   *LoginDetails   `json:"login_details"`
 	NewsletterData *NewsletterData `json:"newsletter-data"`
 }
 
@@ -84,4 +85,32 @@ func Newsletter(c *gin.Context) {
 	})
 
 	c.String(200, "ok")
+}
+
+// Login accepts a username and a password and returns access token or error
+func Login(c *gin.Context) {
+	user := c.PostForm("user")
+	if user == "" {
+		c.String(400, "invalid login")
+	}
+	password := c.PostForm("password")
+	if password == "" {
+		c.String(400, "invalid login")
+	}
+	// get hashed password from db
+	Db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("login"))
+		hash := b.Get([]byte(user))
+		if hash == nil {
+			c.String(400, "invalid login")
+			return fmt.Errorf("user doesn't exist")
+		}
+		// Comparing the password with the hash
+		if err := bcrypt.CompareHashAndPassword(hash, []byte(password)); err != nil {
+			c.String(401, "invalid login")
+			return fmt.Errorf("passwords don't match: %s", err)
+		}
+		// @todo: return token to user
+		return nil
+	})
 }
