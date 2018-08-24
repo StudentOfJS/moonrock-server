@@ -23,21 +23,6 @@ type NewsletterData struct {
 	Last    int16             `json:"last_sent"`
 }
 
-// LoginDetails contains validation for login details
-type LoginDetails struct {
-	Username string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
-	Password string `validate:"min=8",max=255`
-}
-
-// User is encompases all held user data
-type User struct {
-	Ethereum       string          `validate"regexp=^0x[a-fA-F0-9]{40}$"`
-	FirstName      string          `validate:"min=1",max=255`
-	LastName       string          `validate:"min=1",max=255`
-	LoginDetails   *LoginDetails   `json:"login_details"`
-	NewsletterData *NewsletterData `json:"newsletter-data"`
-}
-
 // Newsletter - signs up from PUT request with email to newsletter
 func Newsletter(c *gin.Context) {
 	email := c.PostForm("email")
@@ -127,6 +112,10 @@ func Register(c *gin.Context) {
 
 	if LoginNotValid(username, password) {
 		c.String(400, "invalid login")
+	}
+
+	if UserNotValid(ethereum, firstname, lastname) {
+		c.String(400, "invalid user details")
 	}
 
 	// Generate "hash" to store from username password
