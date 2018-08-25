@@ -22,8 +22,12 @@ func HandleDB() {
 	if err := Db.Init(&Login{}); err != nil {
 		log.Fatal(err)
 	}
+	hash, err := HashPassword(ClientSecret)
+	if err != nil {
+		log.Fatal(err)
+	}
 	clientCredentials := Login{
-		Password: ClientSecret,
+		Password: hash,
 		Username: ClientID,
 	}
 	Db.Save(&clientCredentials)
