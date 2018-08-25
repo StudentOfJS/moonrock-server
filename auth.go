@@ -48,6 +48,10 @@ func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Re
 
 // ValidateClient validates clientId and secret returning an error if the client credentials are wrong
 func (*UserVerifier) ValidateClient(clientID, clientSecret, scope string, req *http.Request) error {
+	if scope != "write:subscription" {
+		err := errors.New("invalid")
+		return err
+	}
 	err := LoginCheck(clientID, clientSecret)
 	fmt.Printf("client auth: %s", err)
 	return err
