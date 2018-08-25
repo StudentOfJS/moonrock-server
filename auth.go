@@ -89,7 +89,9 @@ func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType
 	}
 
 	if err := db.Save(&token); err == storm.ErrAlreadyExists {
-		err := db.Update(&token{ID: 10, Name: "Jack", Age: 45})
+		if err := db.Update(&token); err != nil {
+			return err
+		}
 
 	}
 	defer db.Close()
