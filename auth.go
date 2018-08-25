@@ -109,13 +109,13 @@ func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope 
 	props := make(map[string]string)
 	switch scope {
 	case "write:subscription":
-		props["access_type"] = "client-only"
+		props["access_type"] = "client"
 		props["permission"] = "write"
 	case "write:registration":
-		props["access"] = "client-only"
+		props["access"] = "client"
 		props["permission"] = "write"
 	case "write:user read:user delete:user":
-		props["access_type"] = "auth-only"
+		props["access_type"] = "auth"
 		props["permission"] = "read write delete"
 		props["firstname"] = user.FirstName
 		props["lastname"] = user.LastName
