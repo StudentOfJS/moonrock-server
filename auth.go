@@ -118,6 +118,7 @@ func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope 
 	case "write:user read:user delete:user":
 		props["access_type"] = "auth"
 		props["permission"] = "read write delete"
+		props["id"] = string(user.ID)
 		props["firstname"] = user.FirstName
 		props["lastname"] = user.LastName
 		props["country"] = user.CountryCode
