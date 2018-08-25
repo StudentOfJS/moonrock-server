@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 )
@@ -35,6 +37,11 @@ type User struct {
 
 // TokenSaleUpdatesHandler - signs up from PUT request with email to newsletter
 func TokenSaleUpdatesHandler(c *gin.Context) {
+	// Start boltDB
+	db, err := storm.Open("my.db")
+	if err != nil {
+		log.Fatal(err)
+	}
 	email := c.PostForm("email")
 	if err := EmailValid(email); err != nil {
 		c.String(400, "invalid email")
@@ -47,10 +54,11 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 		NewsLetterID: 0,
 		LastNL:       0,
 	}
-	if err := Db.Save(&tokenSaleUpdates); err == storm.ErrAlreadyExists {
+	if err := db.Save(&tokenSaleUpdates); err == storm.ErrAlreadyExists {
 		c.String(400, "already signed up")
 	}
 	c.String(200, "ok")
+	defer db.Close()
 }
 
 // LoginHandler accepts a username and a password and returns access token or error
@@ -105,10 +113,15 @@ func RegisterHandler(c *gin.Context) {
 		LastName:        lastname,
 		Login:           login,
 	}
-
-	if err := Db.Save(&user); err == storm.ErrAlreadyExists {
+	// Start boltDB
+	db, err := storm.Open("my.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := db.Save(&user); err == storm.ErrAlreadyExists {
 		c.String(400, "already signed up")
 	}
 	// @todo considering logging in after signup
 	c.String(200, "ok")
+	defer db.Close()
 }

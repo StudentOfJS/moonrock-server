@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 func RegisterAPI(router *gin.Engine) {
 	s := oauth.NewOAuthBearerServer(
 		SecretKey,
-		time.Second*120,
+		time.Hour*120,
 		&UserVerifier{},
 		nil)
 	router.POST("/token", s.UserCredentials)
@@ -28,18 +29,17 @@ func RegisterAPI(router *gin.Engine) {
 		})
 	})
 	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
-	authorized.PUT("/family/", TokenSaleUpdatesHandler)
-	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
-	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
+	authorized.PUT("/family", TokenSaleUpdatesHandler)
 
 }
 
-// UserVerifier provides user credentials verifier for testing.
+// UserVerifier provides user credentials verifier
 type UserVerifier struct {
 }
 
 // ValidateUser validates username and password returning an error if the user credentials are wrong
 func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Request) error {
+
 	if err := LoginCheck(username, password); err == nil {
 		return nil
 	}
@@ -48,7 +48,9 @@ func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Re
 
 // ValidateClient validates clientId and secret returning an error if the client credentials are wrong
 func (*UserVerifier) ValidateClient(clientID, clientSecret, scope string, req *http.Request) error {
-	return LoginCheck(clientID, clientSecret)
+	err := LoginCheck(clientID, clientSecret)
+	fmt.Printf("client auth: %s", err)
+	return err
 }
 
 // AddClaims provides additional claims to the token

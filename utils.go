@@ -2,7 +2,10 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"log"
 
+	"github.com/asdine/storm"
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/validator.v2"
@@ -65,13 +68,20 @@ func LoginCheck(u string, p string) error {
 		return err
 	}
 	var user User
-	if err := Db.One("UserName", u, &user); err != nil {
+	db, err := storm.Open("my.db")
+	if err != nil {
+		log.Println("error opening DB")
+	}
+	if err := db.One("Username", u, &user); err != nil {
+		fmt.Printf("error: ", err)
 		return errors.New("invalid login")
 	}
+	defer db.Close()
 	// Comparing the password with the hash
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(p)); err != nil {
 		return errors.New("invalid login")
 	}
+
 	return nil
 }
 
