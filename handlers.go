@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 )
@@ -40,11 +38,13 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 	// Start boltDB
 	db, err := storm.Open("my.db")
 	if err != nil {
-		log.Fatal(err)
+		c.String(500, "server error")
+		return
 	}
 	email := c.PostForm("email")
 	if err := EmailValid(email); err != nil {
 		c.String(400, "invalid email")
+		return
 	}
 	tokenSaleUpdates := Subscription{
 		Allowed:      true,
@@ -56,21 +56,10 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 	}
 	if err := db.Save(&tokenSaleUpdates); err == storm.ErrAlreadyExists {
 		c.String(400, "already signed up")
+		return
 	}
 	c.String(200, "ok")
 	defer db.Close()
-}
-
-// LoginHandler accepts a username and a password and returns access token or error
-func LoginHandler(c *gin.Context) {
-	username := c.PostForm("username")
-	password := c.PostForm("password")
-	if err := LoginCheck(username, password); err != nil {
-		// @todo: return token to client
-		c.String(400, "invalid login")
-	} else {
-		c.String(200, "ok")
-	}
 }
 
 // RegisterHandler validates the user signup form and saves to db
@@ -87,16 +76,18 @@ func RegisterHandler(c *gin.Context) {
 
 	if err := LoginValid(username, password); err != nil {
 		c.String(400, "invalid login details")
+		return
 	}
 
 	if err := UserValid(ethereum, firstname, lastname); err != nil {
 		c.String(400, "invalid user details")
+		return
 	}
 	// Generate "hash" to store from username password
 	hash, err := HashPassword(password)
 	if err != nil {
-		// TODO: Properly handle error
 		c.String(401, "invalid")
+		return
 	}
 
 	login := Login{
@@ -116,12 +107,16 @@ func RegisterHandler(c *gin.Context) {
 	// Start boltDB
 	db, err := storm.Open("my.db")
 	if err != nil {
-		log.Fatal(err)
+		c.String(500, "server error")
+		return
 	}
 	if err := db.Save(&user); err == storm.ErrAlreadyExists {
 		c.String(400, "already signed up")
+		return
 	}
-	// @todo considering logging in after signup
+
 	c.String(200, "ok")
+
 	defer db.Close()
+	return
 }

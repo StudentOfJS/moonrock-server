@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -148,6 +149,6 @@ func (*UserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenT
 
 // ValidateCode validates token Id - currently only partially implemented so will skip
 func (*UserVerifier) ValidateCode(clientID, clientSecret, code, redirectURI string, req *http.Request) (string, error) {
-
+	fmt.Println(redirectURI)
 	return "", nil
 }
