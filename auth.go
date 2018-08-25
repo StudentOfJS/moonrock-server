@@ -2,12 +2,22 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
+	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 	"github.com/maxzerbini/oauth"
 )
+
+// Token is the struct of the users login token
+type Token struct {
+	Credential     string // this field will not be indexed
+	RefreshTokenID string // this field will not be indexed
+	TokenID        string `storm:"id"` // primary key
+	TokenType      string // this field will not be indexed
+}
 
 // RegisterAPI registers api endpoints with the auth middleware
 func RegisterAPI(router *gin.Engine) {
@@ -65,6 +75,25 @@ func (*UserVerifier) AddClaims(credential, tokenID, tokenType, scope string) (ma
 
 // StoreTokenId saves the token Id generated for the user
 func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType string) error {
+	// Start boltDB
+	db, err := storm.Open("my.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	token := Token{
+		Credential:     credential,
+		RefreshTokenID: refreshTokenId,
+		TokenID:        tokenID,
+		TokenType:      tokenType,
+	}
+
+	if err := db.Save(&token); err == storm.ErrAlreadyExists {
+		err := db.Update(&token{ID: 10, Name: "Jack", Age: 45})
+
+	}
+	defer db.Close()
+
 	return nil
 }
 
