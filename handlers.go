@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 )
@@ -115,8 +117,42 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	c.String(200, "ok")
+	c.String(201, "ok")
 
 	defer db.Close()
+	return
+}
+
+func UpdateUserHandler(c *gin.Context) {
+	address := c.PostForm("address")
+	country := c.PostForm("country")
+	ethereum := c.PostForm("ethereum")
+	firstname := c.PostForm("firstname")
+	idStr := c.PostForm("id")
+	id, e := strconv.Atoi(idStr)
+	if e != nil {
+		c.String(401, "unauthenticated")
+		return
+	}
+	lastname := c.PostForm("lastname")
+
+	db, err := storm.Open("my.db")
+	defer db.Close()
+	if err != nil {
+		c.String(500, "server error")
+		return
+	}
+	if err := db.Update(&User{
+		ID:              id,
+		Address:         address,
+		CountryCode:     country,
+		EthereumAddress: ethereum,
+		FirstName:       firstname,
+		LastName:        lastname,
+	}); err != nil {
+		c.String(400, "update failed")
+		return
+	}
+	c.String(200, "ok")
 	return
 }
