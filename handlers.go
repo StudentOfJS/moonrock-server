@@ -117,16 +117,23 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	c.String(201, "ok")
+	c.JSON(200, gin.H{
+		"status":    "updated",
+		"address":   address,
+		"country":   country,
+		"ethereum":  ethereum,
+		"firstName": firstname,
+		"lastName":  lastname,
+	})
 
 	defer db.Close()
 	return
 }
 
+// UpdateUserHandler updates user details supplied to API
 func UpdateUserHandler(c *gin.Context) {
 	address := c.PostForm("address")
 	country := c.PostForm("country")
-	ethereum := c.PostForm("ethereum")
 	firstname := c.PostForm("firstname")
 	idStr := c.PostForm("id")
 	id, e := strconv.Atoi(idStr)
@@ -143,16 +150,49 @@ func UpdateUserHandler(c *gin.Context) {
 		return
 	}
 	if err := db.Update(&User{
-		ID:              id,
-		Address:         address,
-		CountryCode:     country,
-		EthereumAddress: ethereum,
-		FirstName:       firstname,
-		LastName:        lastname,
+		ID:          id,
+		Address:     address,
+		CountryCode: country,
+		FirstName:   firstname,
+		LastName:    lastname,
 	}); err != nil {
 		c.String(400, "update failed")
 		return
 	}
-	c.String(200, "ok")
+	c.JSON(200, gin.H{
+		"status":    "updated",
+		"address":   address,
+		"country":   country,
+		"firstName": firstname,
+		"lastName":  lastname,
+	})
 	return
+}
+
+// ContributionAddressHandler uses an ID to find user and updates their contribution address
+func ContributionAddressHandler(c *gin.Context) {
+	ethereum := c.PostForm("ethereum")
+	idStr := c.PostForm("id")
+	id, e := strconv.Atoi(idStr)
+	if e != nil {
+		c.String(401, "unauthenticated")
+		return
+	}
+	db, err := storm.Open("my.db")
+	defer db.Close()
+	if err != nil {
+		c.String(500, "server error")
+		return
+	}
+
+	if err := db.UpdateField(&User{ID: id}, "EthereumAddress", ethereum); err != nil {
+		c.String(400, "update failed")
+		return
+	}
+	c.JSON(200, gin.H{
+		"status":   "updated",
+		"ethereum": ethereum,
+	})
+	return
+
 }
