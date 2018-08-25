@@ -35,7 +35,9 @@ func RegisterAPI(router *gin.Engine) {
 	authorized.Use(oauth.Authorize(SecretKey, nil))
 	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
 	authorized.PUT("/register", RegisterHandler)
-
+	authorized.PUT("/update", UpdateUserHandler)
+	authorized.PUT("/address", ContributionAddressHandler)
+	authorized.GET("/address", GetContributionAddress)
 }
 
 // UserVerifier provides user credentials verifier

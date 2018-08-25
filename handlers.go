@@ -196,3 +196,28 @@ func ContributionAddressHandler(c *gin.Context) {
 	return
 
 }
+
+func GetContributionAddress(c *gin.Context) {
+	var user User
+	db, err := storm.Open("my.db")
+	defer db.Close()
+	if err != nil {
+		c.String(500, "server error")
+		return
+	}
+	idStr := c.PostForm("id")
+	id, e := strconv.Atoi(idStr)
+	if e != nil {
+		c.String(401, "unauthenticated")
+		return
+	}
+	err = db.One("ID", id, &user)
+	if err != nil {
+		c.String(400, "user doesn't exist")
+		return
+	}
+	c.JSON(200, gin.H{
+		"status":   "ok",
+		"ethereum": user.EthereumAddress,
+	})
+}
