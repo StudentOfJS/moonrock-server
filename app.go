@@ -3,10 +3,28 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/subosito/gotenv"
 	cors "gopkg.in/gin-contrib/cors.v1"
 )
+
+var (
+	//SecretKey is a secret
+	SecretKey string
+	//ClientID is used for client auth
+	ClientID string
+	//ClientSecret is used for client auth
+	ClientSecret string
+)
+
+func init() {
+	gotenv.Load()
+	SecretKey = os.Getenv("SECRET_KEY")
+	ClientID = os.Getenv("CLIENT_ID")
+	ClientSecret = os.Getenv("CLIENT_SECRET")
+}
 
 func server() {
 	r := gin.Default()        // Init Router

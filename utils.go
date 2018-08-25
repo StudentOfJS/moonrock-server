@@ -74,3 +74,11 @@ func LoginCheck(u string, p string) error {
 	}
 	return nil
 }
+
+func HashPassword(p string) ([]byte, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.New("hash failed")
+	}
+	return hash, nil
+}

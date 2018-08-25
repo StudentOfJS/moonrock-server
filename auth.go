@@ -11,42 +11,43 @@ import (
 
 // RegisterAPI registers api endpoints with the auth middleware
 func RegisterAPI(router *gin.Engine) {
+	s := oauth.NewOAuthBearerServer(
+		SecretKey,
+		time.Second*120,
+		&UserVerifier{},
+		nil)
+	router.POST("/token", s.UserCredentials)
+	router.POST("/auth", s.ClientCredentials)
+
 	authorized := router.Group("/")
 	// use the Bearer Athentication middleware
-	authorized.Use(oauth.Authorize("U#cXHY_w4Vg$FCaJ7-jtjr##xMrmgydy", nil))
+	authorized.Use(oauth.Authorize(SecretKey, nil))
 	authorized.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
 	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
-
-	s := oauth.NewOAuthBearerServer(
-		"U#cXHY_w4Vg$FCaJ7-jtjr##xMrmgydy",
-		time.Second*120,
-		&TestUserVerifier{},
-		nil)
-	router.POST("/token", s.UserCredentials)
-	router.POST("/auth", s.ClientCredentials)
+	authorized.PUT("/family/", TokenSaleUpdatesHandler)
+	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
+	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
 
 }
 
-// TestUserVerifier provides user credentials verifier for testing.
-type TestUserVerifier struct {
-	username string
-	password string
+// UserVerifier provides user credentials verifier for testing.
+type UserVerifier struct {
 }
 
 // ValidateUser validates username and password returning an error if the user credentials are wrong
-func (*TestUserVerifier) ValidateUser(username, password, scope string, req *http.Request) error {
-	if username == "user01" && password == "12345" {
+func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Request) error {
+	if err := LoginCheck(username, password); err == nil {
 		return nil
 	}
-	return errors.New("Wrong user")
+	return errors.New("invalid login")
 }
 
 // ValidateClient validates clientId and secret returning an error if the client credentials are wrong
-func (*TestUserVerifier) ValidateClient(clientID, clientSecret, scope string, req *http.Request) error {
+func (*UserVerifier) ValidateClient(clientID, clientSecret, scope string, req *http.Request) error {
 	if clientID == "abcdef" && clientSecret == "12345" {
 		return nil
 	}
@@ -54,31 +55,31 @@ func (*TestUserVerifier) ValidateClient(clientID, clientSecret, scope string, re
 }
 
 // AddClaims provides additional claims to the token
-func (*TestUserVerifier) AddClaims(credential, tokenID, tokenType, scope string) (map[string]string, error) {
+func (*UserVerifier) AddClaims(credential, tokenID, tokenType, scope string) (map[string]string, error) {
 	claims := make(map[string]string)
 	claims["customerId"] = "1001"
 	claims["customerData"] = `{"OrderDate":"2016-12-14","OrderId":"9999"}`
 	return claims, nil
 }
 
-// StoreTokenID saves the token Id generated for the user
-func (*TestUserVerifier) StoreTokenID(credential, tokenID, refreshTokenID, tokenType string) error {
+// StoreTokenId saves the token Id generated for the user
+func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType string) error {
 	return nil
 }
 
 // AddProperties provides additional information to the token response
-func (*TestUserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
+func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
 	props := make(map[string]string)
 	props["customerName"] = "Gopher"
 	return props, nil
 }
 
-// ValidateTokenID validates token Id
-func (*TestUserVerifier) ValidateTokenID(credential, tokenID, refreshTokenID, tokenType string) error {
+// ValidateTokenId validates token Id
+func (*UserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenType string) error {
 	return nil
 }
 
 // ValidateCode validates token Id
-func (*TestUserVerifier) ValidateCode(clientID, clientSecret, code, redirectURI string, req *http.Request) (string, error) {
+func (*UserVerifier) ValidateCode(clientID, clientSecret, code, redirectURI string, req *http.Request) (string, error) {
 	return "", nil
 }
