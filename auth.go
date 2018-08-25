@@ -122,6 +122,19 @@ func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope 
 
 // ValidateTokenId validates token Id
 func (*UserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenType string) error {
+	// Start boltDB
+	db, err := storm.Open("my.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var token Token
+	if err = db.One("TokenID", tokenId, &token); err != nil {
+		return err
+	}
+	if credential != token.Credential || refreshTokenID != token.RefreshTokenID || tokenType != tokenType {
+		return errors.New("invalid token")
+	}
+	defer db.Close()
 	return nil
 }
 
