@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // Subscription stores details for sending emails
@@ -85,7 +84,7 @@ func RegisterHandler(c *gin.Context) {
 		c.String(400, "invalid user details")
 	}
 	// Generate "hash" to store from username password
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hash, err := HashPassword(password)
 	if err != nil {
 		// TODO: Properly handle error
 		c.String(401, "invalid")
