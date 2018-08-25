@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -97,7 +96,16 @@ func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType
 
 // AddProperties provides additional information to the token response
 func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
-	fmt.Println(credential)
+	var user User
+	db, err := storm.Open("my.db")
+	if err != nil {
+		log.Println("error opening DB")
+	}
+	if err := db.One("Username", credential, &user); err != nil {
+		return nil, errors.New("invalid login")
+	}
+	defer db.Close()
+
 	props := make(map[string]string)
 	switch scope {
 	case "write:subscription":
@@ -109,6 +117,9 @@ func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope 
 	case "write:user read:user delete:user":
 		props["access_type"] = "auth-only"
 		props["permission"] = "read write delete"
+		props["firstname"] = user.FirstName
+		props["lastname"] = user.LastName
+		props["country"] = user.CountryCode
 	default:
 		props["access_type"] = "read-only"
 		props["permission"] = "read"
