@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -53,7 +52,6 @@ func (*UserVerifier) ValidateClient(clientID, clientSecret, scope string, req *h
 		return err
 	}
 	err := LoginCheck(clientID, clientSecret)
-	fmt.Printf("client auth: %s", err)
 	return err
 }
 
@@ -73,7 +71,21 @@ func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType
 // AddProperties provides additional information to the token response
 func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
 	props := make(map[string]string)
-	props["customerName"] = "Gopher"
+	switch scope {
+	case "write:subscription":
+		props["access_type"] = "client-only"
+		props["permission"] = "write"
+	case "write:registration":
+		props["access"] = "client-only"
+		props["permission"] = "write"
+	case "write:user read:user delete:user":
+		props["access_type"] = "auth-only"
+		props["permission"] = "read write delete"
+	default:
+		props["access_type"] = "read-only"
+		props["permission"] = "read"
+	}
+
 	return props, nil
 }
 
