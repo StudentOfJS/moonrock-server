@@ -72,7 +72,8 @@ func RegisterHandler(c *gin.Context) {
 	ethereum := c.PostForm("ethereum")
 	firstname := c.PostForm("firstname")
 	lastname := c.PostForm("lastname")
-	newsletter := c.PostForm("newsletter")
+	// Need to consider having a newsletter or not
+	// newsletter := c.PostForm("newsletter")
 	password := c.PostForm("password")
 	username := c.PostForm("username")
 
