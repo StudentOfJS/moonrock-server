@@ -138,7 +138,8 @@ func (*UserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenT
 	return nil
 }
 
-// ValidateCode validates token Id
+// ValidateCode validates token Id - currently only partially implemented so will skip
 func (*UserVerifier) ValidateCode(clientID, clientSecret, code, redirectURI string, req *http.Request) (string, error) {
+
 	return "", nil
 }
