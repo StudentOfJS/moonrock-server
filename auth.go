@@ -48,10 +48,7 @@ func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Re
 
 // ValidateClient validates clientId and secret returning an error if the client credentials are wrong
 func (*UserVerifier) ValidateClient(clientID, clientSecret, scope string, req *http.Request) error {
-	if clientID == "abcdef" && clientSecret == "12345" {
-		return nil
-	}
-	return errors.New("Wrong client")
+	return LoginCheck(clientID, clientSecret)
 }
 
 // AddClaims provides additional claims to the token
