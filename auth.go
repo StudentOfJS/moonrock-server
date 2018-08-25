@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -32,13 +33,8 @@ func RegisterAPI(router *gin.Engine) {
 	authorized := router.Group("/")
 	// use the Bearer Athentication middleware
 	authorized.Use(oauth.Authorize(SecretKey, nil))
-	authorized.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
 	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
-	authorized.PUT("/family", TokenSaleUpdatesHandler)
+	authorized.PUT("/register", RegisterHandler)
 
 }
 
@@ -101,6 +97,7 @@ func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType
 
 // AddProperties provides additional information to the token response
 func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
+	fmt.Println(credential)
 	props := make(map[string]string)
 	switch scope {
 	case "write:subscription":

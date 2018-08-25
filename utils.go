@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/asdine/storm"
@@ -73,7 +72,6 @@ func LoginCheck(u string, p string) error {
 		log.Println("error opening DB")
 	}
 	if err := db.One("Username", u, &user); err != nil {
-		fmt.Printf("error: ", err)
 		return errors.New("invalid login")
 	}
 	defer db.Close()
