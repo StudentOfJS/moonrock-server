@@ -17,6 +17,14 @@ var (
 	ClientID string
 	//ClientSecret is used for client auth
 	ClientSecret string
+	// EmailServer is used for the mail server
+	EmailServer string
+	// EmailPort is used for the mail server
+	EmailPort int
+	// EmailUser is used for the mail server
+	EmailUser string
+	// EmailPassword is used for the mail server
+	EmailPassword string
 )
 
 func init() {
@@ -24,6 +32,10 @@ func init() {
 	SecretKey = os.Getenv("SECRET_KEY")
 	ClientID = os.Getenv("CLIENT_ID")
 	ClientSecret = os.Getenv("CLIENT_SECRET")
+	EmailServer = os.Getenv("SMTP_SERVER")
+	EmailPort = os.Getenv("EMAIL_PORT")
+	EmailUser = os.Getenv("EMAIL")
+	EmailPassword = os.Getenv("EMAIL_PASSWORD")
 }
 
 func server() {
