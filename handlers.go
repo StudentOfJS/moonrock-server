@@ -9,12 +9,12 @@ import (
 
 // Subscription stores details for sending emails
 type Subscription struct {
-	Allowed      bool   `storm:"index"` // this field will be indexed
-	Confirmed    bool   // this field will not be indexed`
+	Allowed      bool   `storm:"index"`        // this field will be indexed
+	Confirmed    bool   `storm:"index"`        // this field will be indexed
 	Email        string `storm:"unique"`       // this field will be indexed with a unique constraint
 	Group        string `storm:"index"`        // this field will be indexed
 	NewsLetterID int    `storm:"id,increment"` // primary key with auto increment
-	LastNL       int16  `storm:"index"`        // this field will not be indexed
+	LastNL       int16  // this field will not be indexed
 }
 
 // Login struct contains the user login data
