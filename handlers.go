@@ -197,6 +197,7 @@ func ContributionAddressHandler(c *gin.Context) {
 
 }
 
+// GetContributionAddress returns the saved address of the user
 func GetContributionAddress(c *gin.Context) {
 	var user User
 	db, err := storm.Open("my.db")
