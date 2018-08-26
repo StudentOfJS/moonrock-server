@@ -1,3 +1,24 @@
+Subscription
+_______
+
+add links to welcome email
+
+add SendWelcomeEmails to main function as go routine
+
+test welcome email by signing up gmail and outlook accounts
+
+---------------------------------------------------------------
+
+Register
+________
+
+registration confirmation email
+link to login @client
+
+onetime login code
+
+create api endpoint for login confirmation, accept code. Set confirmed flag to true
+
+create confirmed flag on user
 
 
-either create api user for email signup or secure token
