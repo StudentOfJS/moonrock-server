@@ -5,6 +5,7 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
+	"github.com/satori/go.uuid"
 )
 
 // Subscription stores details for sending emails
@@ -26,6 +27,7 @@ type Login struct {
 // User struct contains all the user data
 type User struct {
 	Address         string // this field will not be indexed
+	Confirmed       bool   // this field will not be indexed
 	CountryCode     string // this field will not be indexed
 	EthereumAddress string // this field will not be indexed
 	FirstName       string // this field will not be indexed
@@ -33,6 +35,7 @@ type User struct {
 	ID              int    `storm:"id,increment"` // primary key with auto increment
 	LastName        string // this field will not be indexed
 	Login           `storm:"inline"`
+	ResetCode       uuid.UUID // this field will not be indexed
 }
 
 // TokenSaleUpdatesHandler - signs up from PUT request with email to newsletter
@@ -71,9 +74,8 @@ func RegisterHandler(c *gin.Context) {
 	ethereum := c.PostForm("ethereum")
 	firstname := c.PostForm("firstname")
 	lastname := c.PostForm("lastname")
-	// Need to consider having a newsletter or not
-	// newsletter := c.PostForm("newsletter")
 	password := c.PostForm("password")
+	resetcode := uuid.Must(uuid.NewV4())
 	username := c.PostForm("username")
 
 	if err := LoginValid(username, password); err != nil {
@@ -99,12 +101,14 @@ func RegisterHandler(c *gin.Context) {
 
 	user := User{
 		Address:         address,
+		Confirmed:       false,
 		CountryCode:     country,
 		EthereumAddress: ethereum,
 		FirstName:       firstname,
 		Group:           "public_investor",
 		LastName:        lastname,
 		Login:           login,
+		ResetCode:       resetcode,
 	}
 	// Start boltDB
 	db, err := storm.Open("my.db")
