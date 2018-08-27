@@ -108,6 +108,7 @@ func RegisterHandler(c *gin.Context) {
 	}
 	// Start boltDB
 	db, err := storm.Open("my.db")
+	defer db.Close()
 	if err != nil {
 		c.String(500, "server error")
 		return
@@ -125,8 +126,13 @@ func RegisterHandler(c *gin.Context) {
 		"firstName": firstname,
 		"lastName":  lastname,
 	})
-
-	defer db.Close()
+	subject := "Moonrock Account Confirmation"
+	r := NewRequest([]string{username}, subject)
+	r.Send("templates/register_template.html", map[string]string{
+		"country":  country,
+		"ethereum": ethereum,
+		"username": firstname,
+	})
 	return
 }
 
