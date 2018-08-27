@@ -7,21 +7,6 @@ import (
 	"github.com/asdine/storm"
 )
 
-// Config is requried for the email server
-type Config struct {
-	Email    string
-	Password string
-	Port     int
-	Server   string
-}
-
-var config = Config{
-	Email:    EmailUser,
-	Password: EmailPassword,
-	Port:     EmailPort,
-	Server:   EmailServer,
-}
-
 // sendTenWelcomeMails gets up to 10 new subscriptions and sends them each a welcome email
 func sendTenWelcomeMails(done chan bool) {
 	var receivers []Subscription

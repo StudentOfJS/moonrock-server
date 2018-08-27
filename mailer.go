@@ -9,10 +9,25 @@ import (
 )
 
 type Request struct {
-	from    string
-	to      []string
-	subject string
 	body    string
+	from    string
+	subject string
+	to      []string
+}
+
+// Config is requried for the email server
+type Config struct {
+	Email    string
+	Password string
+	Port     int
+	Server   string
+}
+
+var config = Config{
+	Email:    EmailUser,
+	Password: EmailPassword,
+	Port:     EmailPort,
+	Server:   EmailServer,
 }
 
 const (
