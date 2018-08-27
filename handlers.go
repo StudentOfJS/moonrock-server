@@ -130,12 +130,12 @@ func RegisterHandler(c *gin.Context) {
 		"firstName": firstname,
 		"lastName":  lastname,
 	})
-	subject := "Moonrock Account Confirmation"
-	r := NewRequest([]string{username}, subject)
+
+	r := NewRequest([]string{username}, "Moonrock Account Confirmation")
 	r.Send("templates/register_template.html", map[string]string{
 		"country":  country,
 		"ethereum": ethereum,
-		"username": firstname,
+		"name":     firstname,
 	})
 	return
 }
