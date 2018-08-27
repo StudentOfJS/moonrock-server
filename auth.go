@@ -46,11 +46,8 @@ type UserVerifier struct {
 
 // ValidateUser validates username and password returning an error if the user credentials are wrong
 func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Request) error {
-
-	if err := LoginCheck(username, password); err == nil {
-		return nil
-	}
-	return errors.New("invalid login")
+	err := LoginCheck(username, password)
+	return err
 }
 
 // ValidateClient validates clientId and secret returning an error if the client credentials are wrong

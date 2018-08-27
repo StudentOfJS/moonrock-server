@@ -15,10 +15,8 @@ ________
 registration confirmation email
 link to login @client
 
-onetime login code
-
 create api endpoint for login confirmation, accept code. Set confirmed flag to true
 
-create confirmed flag on user
+create lock on login credentials if confirmed flag is not set
 
 
