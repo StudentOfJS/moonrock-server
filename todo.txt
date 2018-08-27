@@ -3,19 +3,8 @@ _______
 
 add links to welcome email
 
-add SendWelcomeEmails to main function as go routine
-
 test welcome email by signing up gmail and outlook accounts
 
 ---------------------------------------------------------------
-
-Register
-________
-
-registration confirmation email
-link to login @client
-
-create api endpoint for login confirmation, accept code. Set confirmed flag to true
-
 
 

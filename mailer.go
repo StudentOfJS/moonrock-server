@@ -8,6 +8,7 @@ import (
 	"net/smtp"
 )
 
+// Request is for emails
 type Request struct {
 	body    string
 	from    string
@@ -35,6 +36,7 @@ const (
 	MIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 )
 
+// NewRequest returns a pointer to a Request
 func NewRequest(to []string, subject string) *Request {
 	return &Request{
 		to:      to,
