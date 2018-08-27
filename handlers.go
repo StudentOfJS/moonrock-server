@@ -160,6 +160,28 @@ func ConfirmAccountHandler(c *gin.Context) {
 	c.JSON(200, gin.H{"status": "account successfully confirmed", "to": "/login"})
 }
 
+// ResetPasswordRequestHandler sends a reset email with unique password reset link
+func ResetPasswordRequestHandler(c *gin.Context) {
+	resetcode := uuid.Must(uuid.NewV4())
+	rc := resetcode.String()
+	username := c.PostForm("username")
+	db, err := storm.Open("my.db")
+	defer db.Close()
+	if err != nil {
+		c.String(500, "server failure")
+		return
+	}
+	if err := db.UpdateField(&Login{Username: username}, "ResetCode", resetcode); err != nil {
+		c.JSON(500, gin.H{"status": "please try again"})
+	}
+
+	r := NewRequest([]string{username}, "Moonrock password reset")
+	r.Send("templates/reset_template.html", map[string]string{
+		"reset": rc,
+	})
+	c.JSON(200, gin.H{"status": "check your email"})
+}
+
 // UpdateUserHandler updates user details supplied to API
 func UpdateUserHandler(c *gin.Context) {
 	address := c.PostForm("address")
