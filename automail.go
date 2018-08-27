@@ -43,6 +43,9 @@ func sendTenWelcomeMails(done chan bool) {
 		r := NewRequest([]string{receiver.Email}, subject)
 		r.Send("templates/template.html", map[string]string{"username": "Welcome"})
 		err := db.UpdateField(&Subscription{NewsLetterID: receiver.NewsLetterID}, "Confirmation", true)
+		if err != nil {
+			log.Panic(err)
+		}
 	}
 	done <- true
 }
