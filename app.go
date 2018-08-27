@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/subosito/gotenv"
@@ -33,7 +34,7 @@ func init() {
 	ClientID = os.Getenv("CLIENT_ID")
 	ClientSecret = os.Getenv("CLIENT_SECRET")
 	EmailServer = os.Getenv("SMTP_SERVER")
-	EmailPort = os.Getenv("EMAIL_PORT")
+	EmailPort, _ = strconv.Atoi(os.Getenv("EMAIL_PORT"))
 	EmailUser = os.Getenv("EMAIL")
 	EmailPassword = os.Getenv("EMAIL_PASSWORD")
 }
