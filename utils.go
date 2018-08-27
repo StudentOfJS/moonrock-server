@@ -68,13 +68,17 @@ func LoginCheck(u string, p string) error {
 	}
 	var user User
 	db, err := storm.Open("my.db")
+	defer db.Close()
 	if err != nil {
 		log.Println("error opening DB")
 	}
 	if err := db.One("Username", u, &user); err != nil {
 		return errors.New("invalid login")
 	}
-	defer db.Close()
+	if !user.Confirmed {
+		return errors.New("confirm email")
+	}
+
 	// Comparing the password with the hash
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(p)); err != nil {
 		return errors.New("invalid login")
