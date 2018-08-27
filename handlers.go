@@ -140,6 +140,26 @@ func RegisterHandler(c *gin.Context) {
 	return
 }
 
+// ConfirmAccountHandler checks a resetCode against the DB and returns an error string or
+func ConfirmAccountHandler(c *gin.Context) {
+	resetcode := c.PostForm("resetcode")
+	rc, _ := uuid.FromString(resetcode)
+	db, err := storm.Open("my.db")
+	defer db.Close()
+	if err != nil {
+		c.JSON(500, gin.H{"status": "please try again"})
+		return
+	}
+	var user User
+	if err := db.One("ResetCode", rc, &user); err != nil {
+		c.JSON(400, gin.H{"status": "invalid token, please signup", "to": "/register"})
+	}
+	if err := db.UpdateField(&User{ID: user.ID}, "Confirmed", true); err != nil {
+		c.JSON(500, gin.H{"status": "please try again"})
+	}
+	c.JSON(200, gin.H{"status": "account successfully confirmed", "to": "/login"})
+}
+
 // UpdateUserHandler updates user details supplied to API
 func UpdateUserHandler(c *gin.Context) {
 	address := c.PostForm("address")
