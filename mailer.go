@@ -31,6 +31,7 @@ var config = Config{
 }
 
 const (
+	// MIME provides content-type and charset info to the email client
 	MIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 )
 

@@ -26,7 +26,7 @@ func sendTenWelcomeMails(done chan bool) {
 
 	for _, receiver := range receivers {
 		r := NewRequest([]string{receiver.Email}, subject)
-		r.Send("templates/template.html", map[string]string{"username": "Welcome"})
+		r.Send("templates/welcome_template.html", map[string]string{"username": "Welcome"})
 		err := db.UpdateField(&Subscription{NewsLetterID: receiver.NewsLetterID}, "Confirmation", true)
 		if err != nil {
 			log.Panic(err)
