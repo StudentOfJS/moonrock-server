@@ -33,11 +33,18 @@ func RegisterAPI(router *gin.Engine) {
 	authorized := router.Group("/")
 	// use the Bearer Athentication middleware
 	authorized.Use(oauth.Authorize(SecretKey, nil))
+	// signup to token sale news
 	authorized.PUT("/tgenews", TokenSaleUpdatesHandler)
+	// register user account
 	authorized.PUT("/register", RegisterHandler)
+	// confirm user account
+	authorized.PUT("/confirm", ConfirmAccountHandler)
+	// update user details
 	authorized.PUT("/update", UpdateUserHandler)
-	authorized.PUT("/address", ContributionAddressHandler)
+	// get user's contribution address
 	authorized.GET("/address", GetContributionAddress)
+	// update user's contribution address
+	authorized.PUT("/address", ContributionAddressHandler)
 }
 
 // UserVerifier provides user credentials verifier

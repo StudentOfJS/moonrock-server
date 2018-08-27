@@ -17,6 +17,5 @@ link to login @client
 
 create api endpoint for login confirmation, accept code. Set confirmed flag to true
 
-create lock on login credentials if confirmed flag is not set
 
 
