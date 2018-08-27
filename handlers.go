@@ -177,9 +177,49 @@ func ResetPasswordRequestHandler(c *gin.Context) {
 
 	r := NewRequest([]string{username}, "Moonrock password reset")
 	r.Send("templates/reset_template.html", map[string]string{
-		"reset": rc,
+		"reset":    rc,
+		"username": username,
 	})
 	c.JSON(200, gin.H{"status": "check your email"})
+}
+
+// ResetPasswordHandler handles the reset code checking and password change
+func ResetPasswordHandler(c *gin.Context) {
+	password := c.PostForm("password")
+	resetcode := c.PostForm("resetcode")
+	username := c.PostForm("username")
+
+	// Generate "hash" from password
+	hash, err := HashPassword(password)
+	if err != nil {
+		c.String(400, "invalid password")
+		return
+	}
+
+	rc, e := uuid.FromString(resetcode)
+
+	if e != nil {
+		c.JSON(400, gin.H{"status": "token expired"})
+	}
+
+	db, err := storm.Open("my.db")
+	defer db.Close()
+	if err != nil {
+		c.String(500, "server failure")
+		return
+	}
+
+	var user User
+	err = db.One("Username", username, &user)
+
+	if uuid.Equal(user.ResetCode, rc) {
+		if err := db.UpdateField(&Login{Username: username}, "Password", hash); err != nil {
+			c.JSON(400, gin.H{"status": "invalid token, please reset and try again", "to": "/reset"})
+		}
+		newResetCode := uuid.Must(uuid.NewV4())
+		db.UpdateField(&User{ResetCode: rc}, "ResetCode", newResetCode)
+		c.JSON(200, gin.H{"status": "success"})
+	}
 }
 
 // UpdateUserHandler updates user details supplied to API
