@@ -57,15 +57,7 @@ func (r *Request) parseTemplate(fileName string, data interface{}) error {
 	return nil
 }
 
-func (r *Request) sendMail() bool {
-	body := "To: " + r.to[0] + "\r\nSubject: " + r.subject + "\r\n" + MIME + "\r\n" + r.body
-	SMTP := fmt.Sprintf("%s:%d", config.Server, config.Port)
-	if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.Email, config.Password, config.Server), config.Email, r.to, []byte(body)); err != nil {
-		return false
-	}
-	return true
-}
-
+// Send accepts a template and items to insert and sends email
 func (r *Request) Send(templateName string, items interface{}) {
 	err := r.parseTemplate(templateName, items)
 	if err != nil {
@@ -76,4 +68,13 @@ func (r *Request) Send(templateName string, items interface{}) {
 	} else {
 		log.Printf("Failed to send the email to %s\n", r.to)
 	}
+}
+
+func (r *Request) sendMail() bool {
+	body := "To: " + r.to[0] + "\r\nSubject: " + r.subject + "\r\n" + MIME + "\r\n" + r.body
+	SMTP := fmt.Sprintf("%s:%d", config.Server, config.Port)
+	if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.Email, config.Password, config.Server), config.Email, r.to, []byte(body)); err != nil {
+		return false
+	}
+	return true
 }
