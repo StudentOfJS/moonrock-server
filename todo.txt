@@ -8,3 +8,14 @@ test welcome email by signing up gmail and outlook accounts
 ---------------------------------------------------------------
 
 
+
+USER_FLOW
+_________
+
+subscribe -> confrim email -> recieve newsletter
+
+register -> email -> confirm code -> login
+
+forgot password -> email -> confirm code / change password -> login
+
+
