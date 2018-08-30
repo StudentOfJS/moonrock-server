@@ -40,10 +40,18 @@ func init() {
 }
 
 func server() {
-	r := gin.Default()        // Init Router
-	r.Use(gin.Logger())       // log to Stdout
-	r.Use(gin.Recovery())     // recover from panics with 500
-	r.Use(cors.Default())     // enable Cross-Origin Resource Sharing
+	r := gin.Default()    // Init Router
+	r.Use(gin.Logger())   // log to Stdout
+	r.Use(gin.Recovery()) // recover from panics with 500
+	r.Use(cors.Default()) // enable Cross-Origin Resource Sharing
+	// confirm user account
+	r.PUT("/confirm", ConfirmAccountHandler)
+	// register user account
+	r.PUT("/register", RegisterHandler)
+	// reset password action
+	r.PUT("/reset_password", ResetPasswordHandler)
+	// signup to token sale news
+	r.PUT("/tgenews", TokenSaleUpdatesHandler)
 	RegisterAPI(r)            // register router
 	log.Fatal(r.Run(":4000")) // log server error
 }
