@@ -60,4 +60,7 @@ func TestCreateUUID(t *testing.T) {
 			t.Error("Expected type of id to be uuid.UUID")
 		}
 	}
+	if _, err := CreateUUID("not_valid_string"); err == nil {
+		t.Error("Provided invalid string, expected error, but recieved nil")
+	}
 }
