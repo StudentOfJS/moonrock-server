@@ -51,7 +51,7 @@ func apiRouter() {
 	r.Use(gin.Recovery())                          // recover from panics with 500
 	r.Use(cors.Default())                          // enable Cross-Origin Resource Sharing
 	r.PUT("/confirm", ConfirmAccountHandler)       // confirm user account
-	r.PUT("/register", RegisterHandler)            // register user account
+	r.POST("/register", RegisterHandler)           // register user account
 	r.PUT("/reset_password", ResetPasswordHandler) // reset password action
 	r.POST("/tgenews", TokenSaleUpdatesHandler)    // signup to token sale news
 	RegisterAPI(r)                                 // register router
