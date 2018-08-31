@@ -64,7 +64,7 @@ func CreateUUID(stringID string) (id uuid.UUID, err error) {
 // LoginCheck accepts a username and a password and returns true if checks pass
 func LoginCheck(u string, p string) error {
 	if err := LoginValid(u, p); err != nil {
-		return err
+		return errors.New("fuck you")
 	}
 	var user User
 	db, err := storm.Open("my.db")

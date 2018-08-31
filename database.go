@@ -10,13 +10,16 @@ import (
 func HandleDB() {
 	// Start boltDB
 	db, err := storm.Open("my.db")
+	defer db.Close()
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 
 	hash, err := HashPassword(ClientSecret)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
 	loginCredentials := Login{
 		Password: hash,
@@ -28,5 +31,20 @@ func HandleDB() {
 	}
 
 	db.Save(&clientCredentials)
-	defer db.Close()
+
+	hash, err = HashPassword(TestPass)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	loginCredentials = Login{
+		Password: hash,
+		Username: TestUser,
+	}
+	clientCredentials = User{
+		Group: "testing",
+		Login: loginCredentials,
+	}
+	db.Save(&clientCredentials)
+
 }

@@ -64,3 +64,12 @@ func TestCreateUUID(t *testing.T) {
 		t.Error("Provided invalid string, expected error, but recieved nil")
 	}
 }
+
+func TestLoginCheck(t *testing.T) {
+	if err := LoginCheck(e, "invalid_login"); err == nil {
+		t.Error("Provided invalid login details, expected error, but recieved nil")
+	}
+	if err := LoginCheck(ClientID, ClientSecret); err != nil {
+		t.Errorf("Provided valid login details, but recieved: %d", err)
+	}
+}

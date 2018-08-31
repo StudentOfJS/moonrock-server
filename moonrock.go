@@ -26,6 +26,10 @@ var (
 	Username string
 	// Password is used for the mail server
 	Password string
+	// TestPass is a password used for testing purposes
+	TestPass string
+	// TestUser is a username used for testing purposes
+	TestUser string
 )
 
 func init() {
@@ -37,6 +41,8 @@ func init() {
 	EmailPort, _ = strconv.Atoi(os.Getenv("EMAIL_PORT"))
 	Username = os.Getenv("EMAIL")
 	Password = os.Getenv("EMAIL_PASSWORD")
+	TestPass = os.Getenv("TEST_PASS")
+	TestUser = os.Getenv("TEST_USER")
 }
 
 func server() {
