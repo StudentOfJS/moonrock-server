@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,10 +16,15 @@ import (
 )
 
 var e = "test@test.com.au"
+var eth = "0xCaE9eFE97895EF43e72791a10254d6abDdb17Ae9"
+var f = "Rod"
+var l = "Lewis"
+var p = "djfiejij5453io5tgrtegdJ"
+var rc = "F0001234-0451-4000-B000-000000000000"
 
 /* ------------------- utils ------------------------- */
 func TestHashPassword(t *testing.T) {
-	hash, err := HashPassword(Password)
+	hash, err := HashPassword(p)
 	if err != nil {
 		t.Errorf("Expected a hash but recieved an error: %s", err)
 	} else {
@@ -30,26 +36,25 @@ func TestHashPassword(t *testing.T) {
 }
 
 func TestLoginValid(t *testing.T) {
-	if err := LoginValid(Username, Password); err != nil {
+	if err := LoginValid(e, p); err != nil {
 		t.Errorf("Provided valid username and password got: %s", err)
 	}
-	if err := LoginValid(Username, "x"); err == nil {
+	if err := LoginValid(e, "x"); err == nil {
 		t.Error("Provided invalid password, expected login check to fail, but it passed")
 	}
-	if err := LoginValid("username_not_valid", Password); err == nil {
+	if err := LoginValid("username_not_valid", p); err == nil {
 		t.Error("Provided invalid username, expected login check to fail but it passed")
 	}
 }
 
 func TestUserValid(t *testing.T) {
-	e, f, l := "0xCaE9eFE97895EF43e72791a10254d6abDdb17Ae9", "Rod", "Lewis"
-	if err := UserValid(e, f, l); err != nil {
+	if err := UserValid(eth, f, l); err != nil {
 		t.Errorf("Provided valid user details, but recieved: %s", err)
 	}
 	if err := UserValid("not_valid", f, l); err == nil {
 		t.Error("Provided invalid eth address, but check passed")
 	}
-	if err := UserValid(e, "12132", l); err == nil {
+	if err := UserValid(eth, "12132", l); err == nil {
 		t.Error("Provided invalid name, but check passed")
 	}
 }
@@ -61,8 +66,7 @@ func TestEmailValid(t *testing.T) {
 }
 
 func TestCreateUUID(t *testing.T) {
-	s := "F0001234-0451-4000-B000-000000000000"
-	id, err := CreateUUID(s)
+	id, err := CreateUUID(rc)
 	if err != nil {
 		t.Errorf("Provided valid string, expected id, but recieved: %s", err)
 	} else {
@@ -104,15 +108,45 @@ func router() *gin.Engine {
 		c.String(200, "pong")
 	})
 	r.PUT("/confirm", ConfirmAccountHandler)       // confirm user account
-	r.PUT("/register", RegisterHandler)            // register user account
+	r.POST("/register", RegisterHandler)           // register user account
 	r.PUT("/reset_password", ResetPasswordHandler) // reset password action
 	r.POST("/tgenews", TokenSaleUpdatesHandler)    // signup to token sale news
 	return r
 }
 
-func getTgeNewsSignupPUTPayload() string {
+func removeTestUser() error {
+	db, err := storm.Open("my.db")
+	defer db.Close()
+	if err != nil {
+		return errors.New("Database failed to open")
+	}
+	var user User
+	err = db.One("EthereumAddress", eth, &user)
+	if err != nil {
+		return errors.New("test user not in db")
+	}
+	if err := db.DeleteStruct(&user); err != nil {
+		return errors.New("can't delete test user")
+	}
+	return nil
+}
+
+func getTgeNewsSignupPOSTPayload() string {
 	params := url.Values{}
 	params.Add("email", "test@testthenewssub.com")
+	return params.Encode()
+}
+
+func getRegisterPOSTPayload() string {
+	params := url.Values{}
+	params.Add("address", "test address in the test village")
+	params.Add("country", "AU")
+	params.Add("ethereum", eth)
+	params.Add("firstname", f)
+	params.Add("firstname", l)
+	params.Add("password", p)
+	params.Add("resetcode", rc)
+	params.Add("username", e)
 	return params.Encode()
 }
 
@@ -130,11 +164,24 @@ func TestPingRoute(t *testing.T) {
 func TestSignupForTokenSaleNews(t *testing.T) {
 	r := router()
 	w := httptest.NewRecorder()
-	NewsSignupPayload := getTgeNewsSignupPUTPayload()
-	req, _ := http.NewRequest("POST", "/tgenews", strings.NewReader(NewsSignupPayload))
+	p := getTgeNewsSignupPOSTPayload()
+	req, _ := http.NewRequest("POST", "/tgenews", strings.NewReader(p))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(NewsSignupPayload)))
+	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
 
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
+}
+
+func TestRegisterUser(t *testing.T) {
+	r := router()
+	w := httptest.NewRecorder()
+	p := getRegisterPOSTPayload()
+	req, _ := http.NewRequest("POST", "/register", strings.NewReader(p))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
+
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+	removeTestUser()
 }
