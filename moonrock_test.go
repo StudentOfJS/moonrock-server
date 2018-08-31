@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+var e string = "test@test.com.au"
+
 func TestHashPassword(t *testing.T) {
 	hash, err := HashPassword(Password)
 	if err != nil {
@@ -43,8 +45,18 @@ func TestUserValid(t *testing.T) {
 }
 
 func TestEmailValid(t *testing.T) {
-	e := "test@test.com.au"
 	if err := EmailValid(e); err != nil {
 		t.Errorf("Provided valid email, but recieved: %d", err)
+	}
+}
+
+func TestCreateUUID(t *testing.T) {
+	id, err := CreateUUID(e)
+	if err != nil {
+		t.Errorf("Provided valid email, expected id, but recieved: %d", err)
+	} else {
+		if reflect.TypeOf(id).String() != "uuid.UUID" {
+			t.Error("Expected type of id to be uuid.UUID")
+		}
 	}
 }
