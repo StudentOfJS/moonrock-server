@@ -21,13 +21,10 @@ func HandleDB() {
 		log.Fatal(err)
 		return
 	}
-	loginCredentials := Login{
+	clientCredentials := User{
+		Group:    "client",
 		Password: hash,
 		Username: ClientID,
-	}
-	clientCredentials := User{
-		Group: "client",
-		Login: loginCredentials,
 	}
 
 	db.Save(&clientCredentials)
@@ -37,13 +34,11 @@ func HandleDB() {
 		log.Fatal(err)
 		return
 	}
-	loginCredentials = Login{
+
+	clientCredentials = User{
+		Group:    "testing",
 		Password: hash,
 		Username: TestUser,
-	}
-	clientCredentials = User{
-		Group: "testing",
-		Login: loginCredentials,
 	}
 	db.Save(&clientCredentials)
 

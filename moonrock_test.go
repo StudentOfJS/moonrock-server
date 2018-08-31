@@ -103,14 +103,15 @@ func TestDB(t *testing.T) {
 /* ------------------- API ------------------------- */
 
 func router() *gin.Engine {
-	r := gin.Default()                    // Init Router
-	r.GET("/ping", func(c *gin.Context) { // for testing server
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
-	r.PUT("/confirm", ConfirmAccountHandler)       // confirm user account
-	r.POST("/register", RegisterHandler)           // register user account
-	r.PUT("/reset_password", ResetPasswordHandler) // reset password action
-	r.POST("/tgenews", TokenSaleUpdatesHandler)    // signup to token sale news
+	r.POST("/confirm", ConfirmAccountHandler)
+	r.POST("/register", RegisterHandler)
+	r.POST("/reset_password", ForgotPasswordHandler)
+	r.POST("/forgot_password", ForgotPasswordHandler)
+	r.POST("/tgenews", TokenSaleUpdatesHandler)
 	return r
 }
 
@@ -131,9 +132,20 @@ func removeTestUser() error {
 	return nil
 }
 
+func registerUser() *httptest.ResponseRecorder {
+	r := router()
+	w := httptest.NewRecorder()
+	p := getRegisterPOSTPayload()
+	req, _ := http.NewRequest("POST", "/register", strings.NewReader(p))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
+	r.ServeHTTP(w, req)
+	return w
+}
+
 func getTgeNewsSignupPOSTPayload() string {
 	params := url.Values{}
-	params.Add("email", "test@testthenewssub.com")
+	params.Add("email", e)
 	return params.Encode()
 }
 
@@ -146,6 +158,12 @@ func getRegisterPOSTPayload() string {
 	params.Add("firstname", l)
 	params.Add("password", p)
 	params.Add("resetcode", rc)
+	params.Add("username", e)
+	return params.Encode()
+}
+
+func getForgotPasswordPOSTPayload() string {
+	params := url.Values{}
 	params.Add("username", e)
 	return params.Encode()
 }
@@ -174,10 +192,18 @@ func TestSignupForTokenSaleNews(t *testing.T) {
 }
 
 func TestRegisterUser(t *testing.T) {
+	w := registerUser()
+	assert.Equal(t, 200, w.Code)
+	removeTestUser()
+}
+
+func TestForgotPassword(t *testing.T) {
+	uw := registerUser()
+	assert.Equal(t, 200, uw.Code)
 	r := router()
 	w := httptest.NewRecorder()
-	p := getRegisterPOSTPayload()
-	req, _ := http.NewRequest("POST", "/register", strings.NewReader(p))
+	p := getForgotPasswordPOSTPayload()
+	req, _ := http.NewRequest("POST", "/forgot_password", strings.NewReader(p))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
 

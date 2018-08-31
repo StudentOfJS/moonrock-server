@@ -46,16 +46,17 @@ func init() {
 }
 
 func apiRouter() {
-	r := gin.Default()                             // Init Router
-	r.Use(gin.Logger())                            // log to Stdout
-	r.Use(gin.Recovery())                          // recover from panics with 500
-	r.Use(cors.Default())                          // enable Cross-Origin Resource Sharing
-	r.PUT("/confirm", ConfirmAccountHandler)       // confirm user account
-	r.POST("/register", RegisterHandler)           // register user account
-	r.PUT("/reset_password", ResetPasswordHandler) // reset password action
-	r.POST("/tgenews", TokenSaleUpdatesHandler)    // signup to token sale news
-	RegisterAPI(r)                                 // register router
-	log.Fatal(r.Run(":4000"))                      // log server error
+	r := gin.Default()                                // Init Router
+	r.Use(gin.Logger())                               // log to Stdout
+	r.Use(gin.Recovery())                             // recover from panics with 500
+	r.Use(cors.Default())                             // enable Cross-Origin Resource Sharing
+	r.PUT("/confirm", ConfirmAccountHandler)          // confirm user account
+	r.POST("/register", RegisterHandler)              // register user account
+	r.PUT("/reset_password", ResetPasswordHandler)    // reset password action
+	r.POST("/forgot_password", ForgotPasswordHandler) // forgot password process
+	r.POST("/tgenews", TokenSaleUpdatesHandler)       // signup to token sale news
+	RegisterAPI(r)                                    // register router
+	log.Fatal(r.Run(":4000"))                         // log server error
 }
 
 func main() {

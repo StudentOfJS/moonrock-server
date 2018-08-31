@@ -10,12 +10,6 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-// Login struct contains the user login data
-type Login struct {
-	Password []byte // this field will not be indexed
-	Username string `storm:"unique"` // this field will be indexed with a unique constraint
-}
-
 // Subscription stores details for sending emails
 type Subscription struct {
 	Allowed      bool   `storm:"index"`        // this field will be indexed
@@ -28,16 +22,18 @@ type Subscription struct {
 
 // User struct contains all the user data
 type User struct {
-	Address         string // this field will not be indexed
-	Confirmed       bool   // this field will not be indexed
-	CountryCode     string // this field will not be indexed
-	EthereumAddress string // this field will not be indexed
-	FirstName       string // this field will not be indexed
-	Group           string `storm:"index"`        // this field will be indexed
-	ID              int    `storm:"id,increment"` // primary key with auto increment
-	LastName        string // this field will not be indexed
-	Login           `storm:"inline"`
+	Address         string    // this field will not be indexed
+	Confirmed       bool      // this field will not be indexed
+	CountryCode     string    // this field will not be indexed
+	EthereumAddress string    // this field will not be indexed
+	FirstName       string    // this field will not be indexed
+	Group           string    `storm:"index"`        // this field will be indexed
+	ID              int       `storm:"id,increment"` // primary key with auto increment
+	LastName        string    // this field will not be indexed
+	Password        []byte    // this field will not be indexed
 	ResetCode       uuid.UUID // this field will not be indexed
+	Username        string    `storm:"unique"` // this field will be indexed with a unique constraint
+
 }
 
 // ContributionAddressHandler uses an ID to find user and updates their contribution address
@@ -98,8 +94,14 @@ func ForgotPasswordHandler(c *gin.Context) {
 		c.String(500, "server failure")
 		return
 	}
-	if err := db.UpdateField(&Login{Username: username}, "ResetCode", resetcode); err != nil {
-		c.JSON(500, gin.H{"status": "please try again"})
+	var user User
+	if err := db.One("Username", username, &user); err != nil {
+		c.String(400, "invalid")
+		return
+	}
+	if err := db.UpdateField(&User{ID: user.ID}, "ResetCode", resetcode); err != nil {
+		c.JSON(500, gin.H{"status": "please try again", "error": err.Error()})
+		return
 	}
 
 	r := NewRequest([]string{username}, "Moonrock password reset")
@@ -163,11 +165,6 @@ func RegisterHandler(c *gin.Context) {
 		return
 	}
 
-	login := Login{
-		Password: hash,
-		Username: username,
-	}
-
 	user := User{
 		Address:         address,
 		Confirmed:       false,
@@ -176,8 +173,9 @@ func RegisterHandler(c *gin.Context) {
 		FirstName:       firstname,
 		Group:           "public_investor",
 		LastName:        lastname,
-		Login:           login,
+		Password:        hash,
 		ResetCode:       resetcode,
+		Username:        username,
 	}
 	// Start boltDB
 	db, err := storm.Open("my.db")
@@ -239,7 +237,7 @@ func ResetPasswordHandler(c *gin.Context) {
 	err = db.One("Username", username, &user)
 
 	if uuid.Equal(user.ResetCode, rc) {
-		if err := db.UpdateField(&Login{Username: username}, "Password", hash); err != nil {
+		if err := db.UpdateField(&User{Username: username}, "Password", hash); err != nil {
 			c.JSON(400, gin.H{"status": "invalid token, please reset and try again", "to": "/reset"})
 		}
 		newResetCode := uuid.Must(uuid.NewV4())
