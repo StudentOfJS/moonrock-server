@@ -53,7 +53,7 @@ func apiRouter() {
 	r.PUT("/confirm", ConfirmAccountHandler)       // confirm user account
 	r.PUT("/register", RegisterHandler)            // register user account
 	r.PUT("/reset_password", ResetPasswordHandler) // reset password action
-	r.PUT("/tgenews", TokenSaleUpdatesHandler)     // signup to token sale news
+	r.POST("/tgenews", TokenSaleUpdatesHandler)    // signup to token sale news
 	RegisterAPI(r)                                 // register router
 	log.Fatal(r.Run(":4000"))                      // log server error
 }
