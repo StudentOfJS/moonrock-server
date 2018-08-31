@@ -40,5 +40,11 @@ func TestUserValid(t *testing.T) {
 	if err := UserValid(e, "12132", l); err == nil {
 		t.Error("Provided invalid name, but check passed")
 	}
+}
 
+func TestEmailValid(t *testing.T) {
+	e := "test@test.com.au"
+	if err := EmailValid(e); err != nil {
+		t.Errorf("Provided valid email, but recieved: %d", err)
+	}
 }
