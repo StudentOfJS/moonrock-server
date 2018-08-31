@@ -51,9 +51,10 @@ func TestEmailValid(t *testing.T) {
 }
 
 func TestCreateUUID(t *testing.T) {
-	id, err := CreateUUID(e)
+	s := "F0001234-0451-4000-B000-000000000000"
+	id, err := CreateUUID(s)
 	if err != nil {
-		t.Errorf("Provided valid email, expected id, but recieved: %d", err)
+		t.Errorf("Provided valid string, expected id, but recieved: %d", err)
 	} else {
 		if reflect.TypeOf(id).String() != "uuid.UUID" {
 			t.Error("Expected type of id to be uuid.UUID")

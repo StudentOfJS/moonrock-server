@@ -55,9 +55,9 @@ func EmailValid(email string) error {
 	return nil
 }
 
-// CreateUUID takes an email and return s an id or error
-func CreateUUID(email string) (id uuid.UUID, err error) {
-	id, err = uuid.FromString(email)
+// CreateUUID takes a string represemtation of a uuid and returns an uuid and error
+func CreateUUID(stringID string) (id uuid.UUID, err error) {
+	id, err = uuid.FromString(stringID)
 	return id, err
 }
 
