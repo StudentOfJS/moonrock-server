@@ -22,10 +22,10 @@ var (
 	EmailServer string
 	// EmailPort is used for the mail server
 	EmailPort int
-	// EmailUser is used for the mail server
-	EmailUser string
-	// EmailPassword is used for the mail server
-	EmailPassword string
+	// Username is used for the mail server
+	Username string
+	// Password is used for the mail server
+	Password string
 )
 
 func init() {
@@ -35,25 +35,21 @@ func init() {
 	ClientSecret = os.Getenv("CLIENT_SECRET")
 	EmailServer = os.Getenv("SMTP_SERVER")
 	EmailPort, _ = strconv.Atoi(os.Getenv("EMAIL_PORT"))
-	EmailUser = os.Getenv("EMAIL")
-	EmailPassword = os.Getenv("EMAIL_PASSWORD")
+	Username = os.Getenv("EMAIL")
+	Password = os.Getenv("EMAIL_PASSWORD")
 }
 
 func server() {
-	r := gin.Default()    // Init Router
-	r.Use(gin.Logger())   // log to Stdout
-	r.Use(gin.Recovery()) // recover from panics with 500
-	r.Use(cors.Default()) // enable Cross-Origin Resource Sharing
-	// confirm user account
-	r.PUT("/confirm", ConfirmAccountHandler)
-	// register user account
-	r.PUT("/register", RegisterHandler)
-	// reset password action
-	r.PUT("/reset_password", ResetPasswordHandler)
-	// signup to token sale news
-	r.PUT("/tgenews", TokenSaleUpdatesHandler)
-	RegisterAPI(r)            // register router
-	log.Fatal(r.Run(":4000")) // log server error
+	r := gin.Default()                             // Init Router
+	r.Use(gin.Logger())                            // log to Stdout
+	r.Use(gin.Recovery())                          // recover from panics with 500
+	r.Use(cors.Default())                          // enable Cross-Origin Resource Sharing
+	r.PUT("/confirm", ConfirmAccountHandler)       // confirm user account
+	r.PUT("/register", RegisterHandler)            // register user account
+	r.PUT("/reset_password", ResetPasswordHandler) // reset password action
+	r.PUT("/tgenews", TokenSaleUpdatesHandler)     // signup to token sale news
+	RegisterAPI(r)                                 // register router
+	log.Fatal(r.Run(":4000"))                      // log server error
 }
 
 func main() {

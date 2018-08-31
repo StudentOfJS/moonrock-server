@@ -25,8 +25,8 @@ type Config struct {
 }
 
 var config = Config{
-	Email:    EmailUser,
-	Password: EmailPassword,
+	Email:    Username,
+	Password: Password,
 	Port:     EmailPort,
 	Server:   EmailServer,
 }

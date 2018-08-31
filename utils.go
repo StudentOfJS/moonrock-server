@@ -12,20 +12,20 @@ import (
 
 // EmailTest contains validation for an email address
 type EmailTest struct {
-	Email string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
+	Email string `validate:"regexp=^[0-9a-zA-Z]+@[0-9a-zA-Z]+(\\.[0-9a-zA-Z]+)+$"`
 }
 
 // LoginTest contains validation for login details
 type LoginTest struct {
-	Username string `validate:"min=5,max=255,regexp=^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$"`
-	Password string `validate:"min=8",max=255`
+	Username string `validate:"min=4, max=255, regexp=^[0-9a-zA-Z]+@[0-9a-zA-Z]+(\\.[0-9a-zA-Z]+)+$"`
+	Password string `validate:"min=8, max=255"`
 }
 
 // UserTest contains validation for user details
 type UserTest struct {
-	Ethereum  string `validate"regexp=^0x[a-fA-F0-9]{40}$"`
-	FirstName string `validate:"min=1",max=255`
-	LastName  string `validate:"min=1",max=255`
+	Ethereum  string `validate:"regexp=^0x[a-fA-F0-9]{40}$"`
+	FirstName string `validate:"min=1, max=255"`
+	LastName  string `validate:"min=1, max=255"`
 }
 
 // LoginValid returns true if validation fails for username or password
