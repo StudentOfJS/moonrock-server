@@ -3,7 +3,10 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/asdine/storm"
@@ -100,7 +103,17 @@ func router() *gin.Engine {
 	r.GET("/ping", func(c *gin.Context) { // for testing server
 		c.String(200, "pong")
 	})
+	r.PUT("/confirm", ConfirmAccountHandler)       // confirm user account
+	r.PUT("/register", RegisterHandler)            // register user account
+	r.PUT("/reset_password", ResetPasswordHandler) // reset password action
+	r.POST("/tgenews", TokenSaleUpdatesHandler)    // signup to token sale news
 	return r
+}
+
+func getTgeNewsSignupPUTPayload() string {
+	params := url.Values{}
+	params.Add("email", "test@testthenewssub.com")
+	return params.Encode()
 }
 
 func TestPingRoute(t *testing.T) {
@@ -114,5 +127,14 @@ func TestPingRoute(t *testing.T) {
 	assert.Equal(t, "pong", w.Body.String())
 }
 
-// func TestSignupForTokenSaleNews(t *testing.T) {
-// }
+func TestSignupForTokenSaleNews(t *testing.T) {
+	r := router()
+	w := httptest.NewRecorder()
+	NewsSignupPayload := getTgeNewsSignupPUTPayload()
+	req, _ := http.NewRequest("POST", "/tgenews", strings.NewReader(NewsSignupPayload))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(NewsSignupPayload)))
+
+	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+}

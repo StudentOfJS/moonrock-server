@@ -290,6 +290,8 @@ func SendWelcomeEmails() {
 func TokenSaleUpdatesHandler(c *gin.Context) {
 	// Start boltDB
 	db, err := storm.Open("my.db")
+	defer db.Close()
+
 	if err != nil {
 		c.String(500, "server error")
 		return
@@ -308,11 +310,10 @@ func TokenSaleUpdatesHandler(c *gin.Context) {
 		LastNL:       0,
 	}
 	if err := db.Save(&tokenSaleUpdates); err == storm.ErrAlreadyExists {
-		c.String(400, "already signed up")
+		c.String(200, "already signed up")
 		return
 	}
 	c.String(200, "ok")
-	defer db.Close()
 }
 
 // UpdateUserHandler updates user details supplied to API
