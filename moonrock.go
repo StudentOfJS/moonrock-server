@@ -45,7 +45,7 @@ func init() {
 	TestUser = os.Getenv("TEST_USER")
 }
 
-func server() {
+func apiRouter() {
 	r := gin.Default()                             // Init Router
 	r.Use(gin.Logger())                            // log to Stdout
 	r.Use(gin.Recovery())                          // recover from panics with 500
@@ -61,5 +61,5 @@ func server() {
 func main() {
 	fmt.Println("Rest API v1.0")
 	HandleDB()
-	server()
+	apiRouter()
 }

@@ -1,10 +1,14 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"testing"
 
 	"github.com/asdine/storm"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 var e = "test@test.com.au"
@@ -88,3 +92,27 @@ func TestDB(t *testing.T) {
 		return
 	}
 }
+
+/* ------------------- API ------------------------- */
+
+func router() *gin.Engine {
+	r := gin.Default()                    // Init Router
+	r.GET("/ping", func(c *gin.Context) { // for testing server
+		c.String(200, "pong")
+	})
+	return r
+}
+
+func TestPingRoute(t *testing.T) {
+	r := router()
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/ping", nil)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Equal(t, "pong", w.Body.String())
+}
+
+// func TestSignupForTokenSaleNews(t *testing.T) {
+// }
