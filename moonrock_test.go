@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -100,6 +101,16 @@ func TestDB(t *testing.T) {
 	}
 }
 
+/* ------------------- Mailer ------------------------- */
+// @todo add conditions
+func TestSendEmail(t *testing.T) {
+	r := NewRequest([]string{f}, "Moonrock password reset")
+	r.Send("templates/reset_template.html", map[string]string{
+		"reset":    rc,
+		"username": e,
+	})
+}
+
 /* ------------------- API ------------------------- */
 
 func router() *gin.Engine {
@@ -157,7 +168,6 @@ func getRegisterPOSTPayload() string {
 	params.Add("firstname", f)
 	params.Add("firstname", l)
 	params.Add("password", p)
-	params.Add("resetcode", rc)
 	params.Add("username", e)
 	return params.Encode()
 }
@@ -165,6 +175,12 @@ func getRegisterPOSTPayload() string {
 func getForgotPasswordPOSTPayload() string {
 	params := url.Values{}
 	params.Add("username", e)
+	return params.Encode()
+}
+
+func getConfirmAccountPOSTPayload(r string) string {
+	params := url.Values{}
+	params.Add("resetcode", r)
 	return params.Encode()
 }
 
@@ -208,6 +224,26 @@ func TestForgotPassword(t *testing.T) {
 	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
 
 	r.ServeHTTP(w, req)
+	assert.Equal(t, 200, w.Code)
+	removeTestUser()
+}
+
+func TestConfirmAccountHandler(t *testing.T) {
+	uw := registerUser()
+	assert.Equal(t, 200, uw.Code)
+	user := User{}
+	if err := json.NewDecoder(uw.Body).Decode(&user); err != nil {
+		t.Fatalf("decoding failed")
+	}
+
+	r := router()
+	w := httptest.NewRecorder()
+	p := getConfirmAccountPOSTPayload(user.ResetCode.String())
+	req, _ := http.NewRequest("POST", "/confirm", strings.NewReader(p))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
+	r.ServeHTTP(w, req)
+
 	assert.Equal(t, 200, w.Code)
 	removeTestUser()
 }

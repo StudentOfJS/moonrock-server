@@ -76,9 +76,11 @@ func ConfirmAccountHandler(c *gin.Context) {
 	var user User
 	if err := db.One("ResetCode", rc, &user); err != nil {
 		c.JSON(400, gin.H{"status": "invalid token, please signup", "to": "/register"})
+		return
 	}
 	if err := db.UpdateField(&User{ID: user.ID}, "Confirmed", true); err != nil {
 		c.JSON(500, gin.H{"status": "please try again"})
+		return
 	}
 	c.JSON(200, gin.H{"status": "account successfully confirmed", "to": "/login"})
 }
