@@ -228,7 +228,7 @@ func TestForgotPassword(t *testing.T) {
 	removeTestUser()
 }
 
-func TestConfirmAccountHandler(t *testing.T) {
+func TestConfirmAccount(t *testing.T) {
 	uw := registerUser()
 	assert.Equal(t, 200, uw.Code)
 	user := User{}
