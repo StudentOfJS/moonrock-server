@@ -6,10 +6,12 @@ import (
 	"html/template"
 	"log"
 	"net/smtp"
+
+	s "github.com/studentofjs/moonrock-server/secrets"
 )
 
-// Request is for emails
-type Request struct {
+// EmailRequest is for emails
+type EmailRequest struct {
 	body    string
 	from    string
 	subject string
@@ -25,10 +27,10 @@ type Config struct {
 }
 
 var config = Config{
-	Email:    Username,
-	Password: Password,
-	Port:     EmailPort,
-	Server:   EmailServer,
+	Email:    s.Username,
+	Password: s.Password,
+	Port:     s.EmailPort,
+	Server:   s.EmailServer,
 }
 
 const (
@@ -36,15 +38,15 @@ const (
 	MIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 )
 
-// NewRequest returns a pointer to a Request
-func NewRequest(to []string, subject string) *Request {
-	return &Request{
+// NewRequest returns a pointer to a EmailRequest
+func NewRequest(to []string, subject string) *EmailRequest {
+	return &EmailRequest{
 		to:      to,
 		subject: subject,
 	}
 }
 
-func (r *Request) parseTemplate(fileName string, data interface{}) error {
+func (r *EmailRequest) parseTemplate(fileName string, data interface{}) error {
 	t, err := template.ParseFiles(fileName)
 	if err != nil {
 		return err
@@ -58,7 +60,7 @@ func (r *Request) parseTemplate(fileName string, data interface{}) error {
 }
 
 // Send accepts a template and items to insert and sends email
-func (r *Request) Send(templateName string, items interface{}) {
+func (r *EmailRequest) Send(templateName string, items interface{}) {
 	err := r.parseTemplate(templateName, items)
 	if err != nil {
 		log.Fatal(err)
@@ -70,7 +72,7 @@ func (r *Request) Send(templateName string, items interface{}) {
 	}
 }
 
-func (r *Request) sendMail() bool {
+func (r *EmailRequest) sendMail() bool {
 	body := "To: " + r.to[0] + "\r\nSubject: " + r.subject + "\r\n" + MIME + "\r\n" + r.body
 	SMTP := fmt.Sprintf("%s:%d", config.Server, config.Port)
 	if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.Email, config.Password, config.Server), config.Email, r.to, []byte(body)); err != nil {
