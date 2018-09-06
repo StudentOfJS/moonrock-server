@@ -194,10 +194,10 @@ func UpdateUserDetails(a, c, f, i, l string) *Response {
 	}
 	if err := db.Update(&User{
 		ID:          id,
-		Address:     address,
-		CountryCode: country,
-		FirstName:   firstname,
-		LastName:    lastname,
+		Address:     a,
+		CountryCode: c,
+		FirstName:   f,
+		LastName:    l,
 	}); err != nil {
 		return getResponse("server error")
 	}
