@@ -1,4 +1,4 @@
-package auth
+package main
 
 import (
 	"errors"
@@ -10,6 +10,8 @@ import (
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 	"github.com/maxzerbini/oauth"
+	"github.com/studentofjs/moonrock-server/handlers"
+	"github.com/studentofjs/moonrock-server/models"
 )
 
 // Token is the struct of the users login token
@@ -30,15 +32,21 @@ func RegisterAPI(router *gin.Engine) {
 	router.POST("/token", s.UserCredentials)
 	router.POST("/auth", s.ClientCredentials)
 
-	authorized := router.Group("/")
+	authorized := router.Group("/u")
 	// use the Bearer Athentication middleware
 	authorized.Use(oauth.Authorize(SecretKey, nil))
 	// update user's contribution address
-	authorized.PUT("/address", ContributionAddressHandler)
+	authorized.PUT("/address", handlers.ContributionAddressHandler)
 	// get user's contribution address
-	authorized.GET("/address", GetContributionAddress)
+	authorized.GET("/address", handlers.GetContributionAddressHandler)
 	// update user details
-	authorized.PUT("/update", UpdateUserHandler)
+	authorized.PUT("/update", handlers.UpdateUserDetailsHandler)
+
+	router.PUT("/confirm", handlers.ConfirmAccountHandler)          // confirm user account
+	router.POST("/register", handlers.RegisterHandler)              // register user account
+	router.PUT("/reset_password", handlers.ResetPasswordHandler)    // reset password action
+	router.POST("/forgot_password", handlers.ForgotPasswordHandler) // forgot password process
+	router.POST("/tgenews", handlers.TokenSaleUpdatesHandler)       // signup to token sale news
 }
 
 // UserVerifier provides user credentials verifier
@@ -47,7 +55,7 @@ type UserVerifier struct {
 
 // ValidateUser validates username and password returning an error if the user credentials are wrong
 func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Request) error {
-	err := LoginCheck(username, password)
+	err := models.LoginCheck(username, password)
 	return err
 }
 
@@ -57,7 +65,7 @@ func (*UserVerifier) ValidateClient(clientID, clientSecret, scope string, req *h
 		err := errors.New("invalid")
 		return err
 	}
-	err := LoginCheck(clientID, clientSecret)
+	err := models.LoginCheck(clientID, clientSecret)
 	return err
 }
 
