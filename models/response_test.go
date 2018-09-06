@@ -22,7 +22,7 @@ var tests = []testResponses{
 	{[]string{"server error"}, 500},
 }
 
-func TestgetResponse(t *testing.T) {
+func TestGetResponse(t *testing.T) {
 	for _, pair := range tests {
 		for _, test := range pair.responses {
 			code := getResponse(test)
