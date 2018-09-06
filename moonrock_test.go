@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -184,6 +185,14 @@ func getConfirmAccountPOSTPayload(r string) string {
 	return params.Encode()
 }
 
+func getLoginPOSTPayload() string {
+	params := url.Values{}
+	params.Add("password", p)
+	params.Add("username", e)
+	params.Add("scope", "write:user read:user delete:user")
+	return params.Encode()
+}
+
 func TestPingRoute(t *testing.T) {
 	r := router()
 
@@ -246,4 +255,30 @@ func TestConfirmAccount(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	removeTestUser()
+}
+
+/* ------------------- API ------------------------- */
+
+func TestLoginUnauthenticated(t *testing.T) {
+	uw := registerUser()
+	assert.Equal(t, 200, uw.Code)
+	defer removeTestUser()
+	r := gin.Default()
+	RegisterAPI(r)
+	p := getLoginPOSTPayload()
+	req, _ := http.NewRequest("POST", "/token", strings.NewReader(p))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
+
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fail()
+	}
+
+	p, err := ioutil.ReadAll(w.Body)
+	if err != nil || strings.Index(string(p), "<title>Successful Login</title>") < 0 {
+		t.Fail()
+	}
+
 }
