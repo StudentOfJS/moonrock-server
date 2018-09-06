@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/asdine/storm"
+	"github.com/studentofjs/moonrock-server/models"
+	"github.com/studentofjs/moonrock-server/secrets"
 )
 
 // HandleDB handles the setup of bolt db
@@ -16,29 +18,29 @@ func HandleDB() {
 		return
 	}
 
-	hash, err := HashPassword(ClientSecret)
+	hash, err := models.HashPassword(secrets.ClientSecret)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	clientCredentials := User{
+	clientCredentials := models.User{
 		Group:    "client",
 		Password: hash,
-		Username: ClientID,
+		Username: secrets.ClientID,
 	}
 
 	db.Save(&clientCredentials)
 
-	hash, err = HashPassword(TestPass)
+	hash, err = models.HashPassword(secrets.TestPass)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	clientCredentials = User{
+	clientCredentials = models.User{
 		Group:    "testing",
 		Password: hash,
-		Username: TestUser,
+		Username: secrets.TestUser,
 	}
 	db.Save(&clientCredentials)
 
