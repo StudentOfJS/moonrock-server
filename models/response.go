@@ -23,5 +23,6 @@ func getResponse(r string) *Response {
 		"already signed up":               400,
 	}
 
-	return Response{errorResponseMap[r], r}
+	response := &Response{serverCode: errorResponseMap[r], response: r}
+	return response
 }
