@@ -92,13 +92,6 @@ func ResetPasswordHandler(c *gin.Context) {
 	c.JSON(code.serverCode, gin.H{"status": code.response})
 }
 
-// TGENewsletterHandler - signs up from PUT request with email to newsletter
-func TGENewsletterHandler(c *gin.Context) {
-	email := c.PostForm("email")
-	code := TGENewsletter(email)
-	c.JSON(code.serverCode, gin.H{"status": code.response})
-}
-
 // UpdateUserDetailsHandler updates user details supplied to API
 func UpdateUserDetailsHandler(c *gin.Context) {
 	// @todo check for values
