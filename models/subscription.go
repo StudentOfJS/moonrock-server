@@ -19,7 +19,7 @@ type Subscription struct {
 }
 
 // TGENewsletter - signs user up to newsletter with a provided email
-func TGENewsletter(e string) *Request {
+func TGENewsletter(e string) *Response {
 	// Start boltDB
 	db, err := storm.Open("my.db")
 	defer db.Close()
@@ -32,7 +32,7 @@ func TGENewsletter(e string) *Request {
 	tokenSaleUpdates := Subscription{
 		Allowed:      true,
 		Confirmed:    false,
-		Email:        email,
+		Email:        e,
 		Group:        "token_sale_updates",
 		NewsLetterID: 0,
 		LastNL:       0,
