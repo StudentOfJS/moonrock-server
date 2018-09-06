@@ -2,7 +2,6 @@ package models
 
 import (
 	"github.com/asdine/storm"
-	"github.com/studentofjs/moonrock-server/utils"
 )
 
 // Subscription stores details for sending emails
@@ -23,7 +22,7 @@ func TGENewsletter(e string) *Request {
 	if err != nil {
 		return getResponse("server error")
 	}
-	if err := utils.EmailValid(e); err != nil {
+	if err := EmailValid(e); err != nil {
 		return getResponse("invalid email")
 	}
 	tokenSaleUpdates := Subscription{
