@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	db "github.com/studentofjs/moonrock-server/database"
 	cors "gopkg.in/gin-contrib/cors.v1"
 )
 
@@ -19,6 +20,6 @@ func apiRouter() {
 
 func main() {
 	fmt.Println("Rest API v1.0")
-	HandleDB()
+	db.HandleDB()
 	apiRouter()
 }
