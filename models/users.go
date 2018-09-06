@@ -1,7 +1,8 @@
 package models
 
 import (
-	"hash"
+	"strconv"
+
 	"github.com/asdine/storm"
 	"github.com/satori/go.uuid"
 	"github.com/studentofjs/moonrock-server/mailer"
@@ -80,22 +81,21 @@ func ForgotPassword(u string) *Response {
 	return getResponse("check your email")
 }
 
-
 // GetContributionAddress returns the saved address of the user
-func GetContributionAddress(i) (eth string, *Response){
+func GetContributionAddress(i string) (string, *Response) {
 	var user User
 	db, err := storm.Open("my.db")
 	defer db.Close()
 	if err != nil {
-		return nil, getResponse("server error")
+		return "", getResponse("server error")
 	}
 	id, e := strconv.Atoi(i)
 	if e != nil {
-		return nil, getResponse("unauthenticated")
+		return "", getResponse("unauthenticated")
 	}
 	err = db.One("ID", id, &user)
 	if err != nil {
-		return nil, getResponse("user doesn't exist")
+		return "", getResponse("user doesn't exist")
 	}
 
 	return user.EthereumAddress, nil
@@ -140,7 +140,7 @@ func Register(a, c, e, f, l, p, u string) *Response {
 		return getResponse("already signed up")
 	}
 
-	r := mailer.NewRequest([]string{username}, "Moonrock Account Confirmation")
+	r := mailer.NewRequest([]string{u}, "Moonrock Account Confirmation")
 	r.Send("templates/register_template.html", map[string]string{
 		"country":  c,
 		"ethereum": e,
@@ -150,14 +150,14 @@ func Register(a, c, e, f, l, p, u string) *Response {
 }
 
 // ResetPassword handles the reset code checking and password change
-func ResetPassword(p, r, u string) *Response{
+func ResetPassword(p, r, u string) *Response {
 	// Generate "hash" from password
 	hash, err := HashPassword(p)
 	if err != nil {
 		return getResponse("server error")
 	}
 
-	reset, e := uuid.FromString(resetcode)
+	reset, e := uuid.FromString(r)
 	if e != nil {
 		return getResponse("server error")
 	}
@@ -181,10 +181,11 @@ func ResetPassword(p, r, u string) *Response{
 		db.UpdateField(&User{ResetCode: reset}, "ResetCode", newResetCode)
 		return getResponse("ok")
 	}
+	return getResponse("token expired, please try again")
 }
 
 // UpdateUserDetails updates user details supplied to API
-func UpdateUserDetails(a, c, f, i, l string) {
+func UpdateUserDetails(a, c, f, i, l string) *Response {
 	id, _ := strconv.Atoi(i)
 	db, err := storm.Open("my.db")
 	defer db.Close()
