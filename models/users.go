@@ -105,11 +105,11 @@ func GetContributionAddress(i) (eth string, *Response){
 func Register(a, c, e, f, l, p, u string) *Response {
 	resetcode := uuid.Must(uuid.NewV4())
 
-	if err := utils.LoginValid(u, p); err != nil {
+	if err := LoginValid(u, p); err != nil {
 		return getResponse("invalid signup")
 	}
 
-	if err := utils.UserValid(e, f, l); err != nil {
+	if err := UserValid(e, f, l); err != nil {
 		return getResponse("invalid signup")
 	}
 	// Generate "hash" to store from username password
