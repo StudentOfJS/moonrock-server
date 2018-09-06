@@ -6,7 +6,7 @@ type Response struct {
 	response   string
 }
 
-func getResponse(r string) *Response {
+func getResponse(r string) Response {
 	errorResponseMap := map[string]int{
 		"updated":                         200,
 		"account successfully confirmed":  200,
@@ -23,6 +23,6 @@ func getResponse(r string) *Response {
 		"already signed up":               400,
 	}
 
-	response := &Response{serverCode: errorResponseMap[r], response: r}
+	response := Response{serverCode: errorResponseMap[r], response: r}
 	return response
 }

@@ -3,9 +3,7 @@ package handlers
 import (
 	"strconv"
 
-	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
-	"github.com/satori/go.uuid"
 	"github.com/studentofjs/moonrock-server/models"
 )
 
@@ -49,7 +47,7 @@ func ForgotPasswordHandler(c *gin.Context) {
 func GetContributionAddressHandler(c *gin.Context) {
 	i := c.PostForm("id")
 	eth, code := models.GetContributionAddress(i)
-	if eth != nil {
+	if eth != "" {
 		c.JSON(200, gin.H{
 			"status":   "ok",
 			"ethereum": eth,
@@ -88,7 +86,7 @@ func ResetPasswordHandler(c *gin.Context) {
 	password := c.PostForm("password")
 	resetcode := c.PostForm("resetcode")
 	username := c.PostForm("username")
-	code := ResetPassword(p, r, u string)
+	code := ResetPassword(p, r, u)
 	c.JSON(code.serverCode, gin.H{"status": code.response})
 }
 
@@ -96,11 +94,11 @@ func ResetPasswordHandler(c *gin.Context) {
 func UpdateUserDetailsHandler(c *gin.Context) {
 	// @todo check for values
 	a := c.PostForm("address")
-	c := c.PostForm("country")
+	cc := c.PostForm("country")
 	f := c.PostForm("firstname")
 	i := c.PostForm("id")
 	l := c.PostForm("lastname")
-	code := UpdateUserDetails(a, c, f, i, l)
+	code := UpdateUserDetails(a, cc, f, i, l)
 	if code.serverCode == 200 {
 		c.JSON(200, gin.H{
 			"status":    "updated",
