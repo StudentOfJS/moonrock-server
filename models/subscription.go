@@ -21,7 +21,7 @@ type Subscription struct {
 
 // TGENewsletter - signs user up to newsletter with a provided email
 func TGENewsletter(e string) *Response {
-	db, err := database.OpenTestDB()
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
@@ -47,7 +47,7 @@ func TGENewsletter(e string) *Response {
 // sendTenWelcomeMails gets up to 10 new subscriptions and sends them each a welcome email
 func sendTenWelcomeMails(done chan bool) {
 	var receivers []Subscription
-	db, err := database.OpenTestDB()
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
