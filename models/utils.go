@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/asdine/storm"
 	"github.com/satori/go.uuid"
+	"github.com/studentofjs/moonrock-server/database"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/validator.v2"
 )
@@ -67,11 +67,12 @@ func LoginCheck(u string, p string) error {
 		return errors.New("invalid login")
 	}
 	var user User
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenDB()
 	if err != nil {
 		log.Println("error opening DB")
 	}
+	defer db.Close()
+
 	if err := db.One("Username", u, &user); err != nil {
 		return errors.New("invalid login")
 	}
