@@ -28,7 +28,7 @@ func TestGetResponse(t *testing.T) {
 	for _, pair := range tests {
 		for _, test := range pair.responses {
 			code := getResponse(test)
-			if code.serverCode != pair.serverCode {
+			if code.ServerCode != pair.serverCode {
 				t.Fail()
 			}
 		}
