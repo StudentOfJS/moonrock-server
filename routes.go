@@ -3,15 +3,16 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 	"github.com/maxzerbini/oauth"
+	"github.com/studentofjs/moonrock-server/database"
 	"github.com/studentofjs/moonrock-server/handlers"
 	"github.com/studentofjs/moonrock-server/models"
+	"github.com/studentofjs/moonrock-server/secrets"
 )
 
 // Token is the struct of the users login token
@@ -25,7 +26,7 @@ type Token struct {
 // RegisterAPI registers api endpoints with the auth middleware
 func RegisterAPI(router *gin.Engine) {
 	s := oauth.NewOAuthBearerServer(
-		SecretKey,
+		secrets.SecretKey,
 		time.Hour*120,
 		&UserVerifier{},
 		nil)
@@ -34,7 +35,7 @@ func RegisterAPI(router *gin.Engine) {
 
 	authorized := router.Group("/u")
 	// use the Bearer Athentication middleware
-	authorized.Use(oauth.Authorize(SecretKey, nil))
+	authorized.Use(oauth.Authorize(secrets.SecretKey, nil))
 	// update user's contribution address
 	authorized.PUT("/address", handlers.ContributionAddressHandler)
 	// get user's contribution address
@@ -46,7 +47,7 @@ func RegisterAPI(router *gin.Engine) {
 	router.POST("/register", handlers.RegisterHandler)              // register user account
 	router.PUT("/reset_password", handlers.ResetPasswordHandler)    // reset password action
 	router.POST("/forgot_password", handlers.ForgotPasswordHandler) // forgot password process
-	router.POST("/tgenews", handlers.TokenSaleUpdatesHandler)       // signup to token sale news
+	router.POST("/tgenews", handlers.TGENewsletterHandler)          // signup to token sale news
 }
 
 // UserVerifier provides user credentials verifier
@@ -79,11 +80,11 @@ func (*UserVerifier) AddClaims(credential, tokenID, tokenType, scope string) (ma
 
 // StoreTokenId saves the token Id generated for the user
 func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType string) error {
-	// Start boltDB
-	db, err := storm.Open("my.db")
+	db, err := database.OpenDB()
 	if err != nil {
-		log.Fatal(err)
+		return errors.New("database error")
 	}
+	defer db.Close()
 
 	token := Token{
 		Credential:     credential,
@@ -98,22 +99,23 @@ func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType
 		}
 
 	}
-	defer db.Close()
-
 	return nil
 }
 
 // AddProperties provides additional information to the token response
 func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
-	var user User
-	db, err := storm.Open("my.db")
+	db, err := database.OpenDB()
 	if err != nil {
-		log.Println("error opening DB")
+
+		return nil, errors.New("database error")
 	}
+	defer db.Close()
+
+	var user models.User
+
 	if err := db.One("Username", credential, &user); err != nil {
 		return nil, errors.New("invalid login")
 	}
-	defer db.Close()
 
 	props := make(map[string]string)
 	switch scope {
@@ -140,11 +142,11 @@ func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope 
 
 // ValidateTokenId validates token Id
 func (*UserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenType string) error {
-	// Start boltDB
-	db, err := storm.Open("my.db")
+	db, err := database.OpenDB()
 	if err != nil {
-		log.Fatal(err)
+		return errors.New("database error")
 	}
+	defer db.Close()
 	var token Token
 	if err = db.One("TokenID", tokenId, &token); err != nil {
 		return err
@@ -152,7 +154,6 @@ func (*UserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenT
 	if credential != token.Credential || refreshTokenID != token.RefreshTokenID || tokenType != tokenType {
 		return errors.New("invalid token")
 	}
-	defer db.Close()
 	return nil
 }
 
