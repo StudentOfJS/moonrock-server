@@ -9,5 +9,5 @@ import (
 func TGENewsletterHandler(c *gin.Context) {
 	email := c.PostForm("email")
 	code := models.TGENewsletter(email)
-	c.JSON(code.serverCode, gin.H{"status": code.response})
+	c.JSON(code.ServerCode, gin.H{"status": code.Response})
 }

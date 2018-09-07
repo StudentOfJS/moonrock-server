@@ -24,20 +24,20 @@ type User struct {
 }
 
 // UpdateContributionAddress uses an ID to find user and updates their contribution address
-func UpdateContributionAddress(id int, e string) bool {
+func UpdateContributionAddress(id int, e string) *Response {
 	db, err := storm.Open("my.db")
 	defer db.Close()
 	if err != nil {
-		return false
+		return getResponse("server error")
 	}
 	if err := db.UpdateField(&User{ID: id}, "EthereumAddress", e); err != nil {
-		return false
+		return getResponse("invalid address")
 	}
-	return true
+	return getResponse("ok")
 }
 
 // ConfirmAccount checks a resetCode against the DB and returns an error string or
-func ConfirmAccount(c string) Response {
+func ConfirmAccount(c string) *Response {
 	rc, _ := uuid.FromString(c)
 	db, err := storm.Open("my.db")
 	defer db.Close()
@@ -55,7 +55,7 @@ func ConfirmAccount(c string) Response {
 }
 
 // ForgotPassword sends a reset email with unique password reset link
-func ForgotPassword(u string) Response {
+func ForgotPassword(u string) *Response {
 	resetcode := uuid.Must(uuid.NewV4())
 	rc := resetcode.String()
 
@@ -82,7 +82,7 @@ func ForgotPassword(u string) Response {
 }
 
 // GetContributionAddress returns the saved address of the user
-func GetContributionAddress(i string) (string, Response) {
+func GetContributionAddress(i string) (string, *Response) {
 	var user User
 	db, err := storm.Open("my.db")
 	defer db.Close()
@@ -102,7 +102,7 @@ func GetContributionAddress(i string) (string, Response) {
 }
 
 // Register validates the user signup form and saves to db
-func Register(a, c, e, f, l, p, u string) Response {
+func Register(a, c, e, f, l, p, u string) *Response {
 	resetcode := uuid.Must(uuid.NewV4())
 
 	if err := LoginValid(u, p); err != nil {
@@ -150,7 +150,7 @@ func Register(a, c, e, f, l, p, u string) Response {
 }
 
 // ResetPassword handles the reset code checking and password change
-func ResetPassword(p, r, u string) Response {
+func ResetPassword(p, r, u string) *Response {
 	// Generate "hash" from password
 	hash, err := HashPassword(p)
 	if err != nil {
@@ -185,7 +185,7 @@ func ResetPassword(p, r, u string) Response {
 }
 
 // UpdateUserDetails updates user details supplied to API
-func UpdateUserDetails(a, c, f, i, l string) Response {
+func UpdateUserDetails(a, c, f, i, l string) *Response {
 	id, _ := strconv.Atoi(i)
 	db, err := storm.Open("my.db")
 	defer db.Close()

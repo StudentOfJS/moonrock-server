@@ -19,7 +19,7 @@ type Subscription struct {
 }
 
 // TGENewsletter - signs user up to newsletter with a provided email
-func TGENewsletter(e string) Response {
+func TGENewsletter(e string) *Response {
 	// Start boltDB
 	db, err := storm.Open("my.db")
 	defer db.Close()

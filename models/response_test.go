@@ -1,6 +1,8 @@
 package models
 
-import "testing"
+import (
+	"testing"
+)
 
 type testResponses struct {
 	responses  []string

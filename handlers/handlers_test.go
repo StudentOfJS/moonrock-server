@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,72 +22,6 @@ var f = "Rod"
 var l = "Lewis"
 var p = "djfiejij5453io5tgrtegdJ"
 var rc = "F0001234-0451-4000-B000-000000000000"
-
-/* ------------------- utils ------------------------- */
-func TestHashPassword(t *testing.T) {
-	hash, err := HashPassword(p)
-	if err != nil {
-		t.Errorf("Expected a hash but recieved an error: %s", err)
-	} else {
-		hashType := reflect.TypeOf(hash).String()
-		if hashType != "[]uint8" {
-			t.Error("Expected a []uint8, but recieved: " + hashType)
-		}
-	}
-}
-
-func TestLoginValid(t *testing.T) {
-	if err := LoginValid(e, p); err != nil {
-		t.Errorf("Provided valid username and password got: %s", err)
-	}
-	if err := LoginValid(e, "x"); err == nil {
-		t.Error("Provided invalid password, expected login check to fail, but it passed")
-	}
-	if err := LoginValid("username_not_valid", p); err == nil {
-		t.Error("Provided invalid username, expected login check to fail but it passed")
-	}
-}
-
-func TestUserValid(t *testing.T) {
-	if err := UserValid(eth, f, l); err != nil {
-		t.Errorf("Provided valid user details, but recieved: %s", err)
-	}
-	if err := UserValid("not_valid", f, l); err == nil {
-		t.Error("Provided invalid eth address, but check passed")
-	}
-	if err := UserValid(eth, "12132", l); err == nil {
-		t.Error("Provided invalid name, but check passed")
-	}
-}
-
-func TestEmailValid(t *testing.T) {
-	if err := EmailValid(e); err != nil {
-		t.Errorf("Provided valid email, but recieved: %s", err)
-	}
-}
-
-func TestCreateUUID(t *testing.T) {
-	id, err := CreateUUID(rc)
-	if err != nil {
-		t.Errorf("Provided valid string, expected id, but recieved: %s", err)
-	} else {
-		if reflect.TypeOf(id).String() != "uuid.UUID" {
-			t.Error("Expected type of id to be uuid.UUID")
-		}
-	}
-	if _, err := CreateUUID("not_valid_string"); err == nil {
-		t.Error("Provided invalid string, expected error, but recieved nil")
-	}
-}
-
-func TestLoginCheck(t *testing.T) {
-	if err := LoginCheck(e, "invalid_login"); err == nil {
-		t.Error("Provided invalid login details, expected error, but recieved nil")
-	}
-	if err := LoginCheck(TestUser, TestPass); err.Error() != "confirm email" {
-		t.Errorf("Provided valid login details, but recieved: %s", err)
-	}
-}
 
 /* ------------------- Database ------------------------- */
 

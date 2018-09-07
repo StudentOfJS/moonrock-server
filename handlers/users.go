@@ -16,31 +16,29 @@ func ContributionAddressHandler(c *gin.Context) {
 		c.String(401, "unauthenticated")
 		return
 	}
-
-	if !models.UpdateContributionAddress(id, e) {
-		c.String(400, "update failed")
-		return
+	code := models.UpdateContributionAddress(id, e)
+	if code.ServerCode == 200 {
+		c.JSON(200, gin.H{
+			"status":   "updated",
+			"ethereum": e,
+		})
+	} else {
+		c.JSON(code.ServerCode, gin.H{"status": code.Response})
 	}
-
-	c.JSON(200, gin.H{
-		"status":   "updated",
-		"ethereum": e,
-	})
-	return
 }
 
 // ConfirmAccountHandler checks a resetCode against the DB and returns an error string or
 func ConfirmAccountHandler(c *gin.Context) {
 	resetcode := c.PostForm("resetcode")
 	code := models.ConfirmAccount(resetcode)
-	c.JSON(code.serverCode, gin.H{"status": code.response})
+	c.JSON(code.ServerCode, gin.H{"status": code.Response})
 }
 
 // ForgotPasswordHandler sends a reset email with unique password reset link
 func ForgotPasswordHandler(c *gin.Context) {
 	username := c.PostForm("username")
 	code := models.ForgotPassword(username)
-	c.JSON(code.serverCode, gin.H{"status": code.response})
+	c.JSON(code.ServerCode, gin.H{"status": code.Response})
 }
 
 // GetContributionAddressHandler returns the saved address of the user
@@ -53,7 +51,7 @@ func GetContributionAddressHandler(c *gin.Context) {
 			"ethereum": eth,
 		})
 	} else {
-		c.JSON(code.serverCode, gin.H{"status": code.response})
+		c.JSON(code.ServerCode, gin.H{"status": code.Response})
 	}
 }
 
@@ -67,7 +65,7 @@ func RegisterHandler(c *gin.Context) {
 	password := c.PostForm("password")
 	username := c.PostForm("username")
 	code := models.Register(address, country, ethereum, firstname, lastname, password, username)
-	if code.serverCode == 200 {
+	if code.ServerCode == 200 {
 		c.JSON(200, gin.H{
 			"status":    "updated",
 			"address":   address,
@@ -77,7 +75,7 @@ func RegisterHandler(c *gin.Context) {
 			"lastName":  lastname,
 		})
 	} else {
-		c.JSON(code.serverCode, gin.H{"status": code.response})
+		c.JSON(code.ServerCode, gin.H{"status": code.Response})
 	}
 }
 
@@ -86,8 +84,8 @@ func ResetPasswordHandler(c *gin.Context) {
 	password := c.PostForm("password")
 	resetcode := c.PostForm("resetcode")
 	username := c.PostForm("username")
-	code := ResetPassword(p, r, u)
-	c.JSON(code.serverCode, gin.H{"status": code.response})
+	code := models.ResetPassword(password, resetcode, username)
+	c.JSON(code.ServerCode, gin.H{"status": code.Response})
 }
 
 // UpdateUserDetailsHandler updates user details supplied to API
@@ -98,16 +96,16 @@ func UpdateUserDetailsHandler(c *gin.Context) {
 	f := c.PostForm("firstname")
 	i := c.PostForm("id")
 	l := c.PostForm("lastname")
-	code := UpdateUserDetails(a, cc, f, i, l)
-	if code.serverCode == 200 {
+	code := models.UpdateUserDetails(a, cc, f, i, l)
+	if code.ServerCode == 200 {
 		c.JSON(200, gin.H{
 			"status":    "updated",
-			"address":   address,
-			"country":   country,
-			"firstName": firstname,
-			"lastName":  lastname,
+			"address":   a,
+			"country":   cc,
+			"firstName": f,
+			"lastName":  l,
 		})
 	} else {
-		c.JSON(code.serverCode, gin.H{"status": code.response})
+		c.JSON(code.ServerCode, gin.H{"status": code.Response})
 	}
 }
