@@ -3,7 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/studentofjs/moonrock-server/models"
 )
 
 var e = "test@test.com.au"
@@ -35,16 +35,6 @@ func TestDB(t *testing.T) {
 	}
 }
 
-/* ------------------- Mailer ------------------------- */
-// @todo add conditions
-func TestSendEmail(t *testing.T) {
-	r := NewRequest([]string{f}, "Moonrock password reset")
-	r.Send("templates/reset_template.html", map[string]string{
-		"reset":    rc,
-		"username": e,
-	})
-}
-
 /* ------------------- API ------------------------- */
 
 func router() *gin.Engine {
@@ -56,7 +46,7 @@ func router() *gin.Engine {
 	r.POST("/register", RegisterHandler)
 	r.POST("/reset_password", ForgotPasswordHandler)
 	r.POST("/forgot_password", ForgotPasswordHandler)
-	r.POST("/tgenews", TokenSaleUpdatesHandler)
+	r.POST("/tgenews", TGENewsletterHandler)
 	return r
 }
 
@@ -66,7 +56,7 @@ func removeTestUser() error {
 	if err != nil {
 		return errors.New("Database failed to open")
 	}
-	var user User
+	var user models.User
 	err = db.One("EthereumAddress", eth, &user)
 	if err != nil {
 		return errors.New("test user not in db")
@@ -173,7 +163,7 @@ func TestForgotPassword(t *testing.T) {
 func TestConfirmAccount(t *testing.T) {
 	uw := registerUser()
 	assert.Equal(t, 200, uw.Code)
-	user := User{}
+	user := models.User{}
 	if err := json.NewDecoder(uw.Body).Decode(&user); err != nil {
 		t.Fatalf("decoding failed")
 	}
@@ -188,30 +178,4 @@ func TestConfirmAccount(t *testing.T) {
 
 	assert.Equal(t, 200, w.Code)
 	removeTestUser()
-}
-
-/* ------------------- API ------------------------- */
-
-func TestLoginUnauthenticated(t *testing.T) {
-	uw := registerUser()
-	assert.Equal(t, 200, uw.Code)
-	defer removeTestUser()
-	r := gin.Default()
-	RegisterAPI(r)
-	p := getLoginPOSTPayload()
-	req, _ := http.NewRequest("POST", "/token", strings.NewReader(p))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Length", strconv.Itoa(len(p)))
-
-	r.ServeHTTP(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Fail()
-	}
-
-	p, err := ioutil.ReadAll(w.Body)
-	if err != nil || strings.Index(string(p), "<title>Successful Login</title>") < 0 {
-		t.Fail()
-	}
-
 }
