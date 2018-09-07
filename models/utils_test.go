@@ -2,6 +2,8 @@ package models
 
 import (
 	"testing"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type testLogin struct {
@@ -102,6 +104,19 @@ func TestCreateUUID(t *testing.T) {
 		testString := string(testByte[i:])
 		if _, err := CreateUUID(testString); err == nil {
 			t.Fail()
+		}
+	}
+}
+
+func TestHashPassword(t *testing.T) {
+	for _, login := range testLogins {
+		hash, err := HashPassword(login.password)
+		if err != nil {
+			t.Fail()
+		} else {
+			if err := bcrypt.CompareHashAndPassword(hash, []byte(login.password)); err != nil {
+				t.Fail()
+			}
 		}
 	}
 }
