@@ -60,13 +60,7 @@ func TestLoginValid(t *testing.T) {
 			if err := LoginValid(login.username, login.password); err != nil {
 				t.Fail()
 			}
-		}
-	}
-}
-
-func TestLoginInvalid(t *testing.T) {
-	for _, login := range testLogins {
-		if !login.valid {
+		} else {
 			if err := LoginValid(login.username, login.password); err == nil {
 				t.Fail()
 			}
