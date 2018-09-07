@@ -23,7 +23,8 @@ func apiRouter() {
 func init() {
 	db, err := database.OpenDB()
 	if err != nil {
-		return getResponse("server error")
+		log.Fatalf("database error:%v", err)
+		return
 	}
 	defer db.Close()
 
