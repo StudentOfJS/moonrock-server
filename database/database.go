@@ -1,11 +1,19 @@
 package database
 
 import (
+	"errors"
 	"log"
 
 	"github.com/asdine/storm"
 	"github.com/studentofjs/moonrock-server/models"
 	"github.com/studentofjs/moonrock-server/secrets"
+)
+
+var (
+	// DB is the production database
+	DB *storm.DB
+	// TestDB is the test database
+	TestDB *storm.DB
 )
 
 // HandleDB handles the setup of bolt db
@@ -43,5 +51,30 @@ func HandleDB() {
 		Username: secrets.TestUser,
 	}
 	db.Save(&clientCredentials)
+}
 
+// AccessDB opens access to the production DB
+func AccessDB(o <-chan bool, e chan<- error) {
+	var err error
+	DB, err = storm.Open("my.db")
+	if err != nil {
+		e <- errors.New("production database failed to open")
+	}
+	open := <-o
+	if !open {
+		DB.Close()
+	}
+}
+
+// AccessTestDB opens access to the test DB
+func AccessTestDB(o <-chan bool, e chan<- error) {
+	var err error
+	TestDB, err = storm.Open("my.db")
+	if err != nil {
+		e <- errors.New("Test database failed to open")
+	}
+	open := <-o
+	if !open {
+		DB.Close()
+	}
 }

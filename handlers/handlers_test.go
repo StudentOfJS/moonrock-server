@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,16 +24,12 @@ var l = "Lewis"
 var p = "djfiejij5453io5tgrtegdJ"
 var rc = "F0001234-0451-4000-B000-000000000000"
 
-/* ------------------- Database ------------------------- */
+func TestMain(m *testing.M) {
+	//Set Gin to Test Mode
+	gin.SetMode(gin.TestMode)
 
-func TestDB(t *testing.T) {
-	// Start boltDB
-	db, err := storm.Open("my.db")
-	defer db.Close()
-	if err != nil {
-		t.Errorf("Database failed to open: %v", err)
-		return
-	}
+	// Run the other tests
+	os.Exit(m.Run())
 }
 
 /* ------------------- API ------------------------- */
@@ -51,7 +48,7 @@ func router() *gin.Engine {
 }
 
 func removeTestUser() error {
-	db, err := storm.Open("my.db")
+	db, err := storm.Open("test.db")
 	defer db.Close()
 	if err != nil {
 		return errors.New("Database failed to open")
