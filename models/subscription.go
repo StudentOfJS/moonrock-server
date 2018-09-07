@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/asdine/storm"
+	"github.com/studentofjs/moonrock-server/database"
 	"github.com/studentofjs/moonrock-server/mailer"
 )
 
@@ -20,12 +21,12 @@ type Subscription struct {
 
 // TGENewsletter - signs user up to newsletter with a provided email
 func TGENewsletter(e string) *Response {
-	// Start boltDB
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenTestDB()
 	if err != nil {
 		return getResponse("server error")
 	}
+	defer db.Close()
+
 	if err := EmailValid(e); err != nil {
 		return getResponse("invalid email")
 	}
@@ -46,11 +47,9 @@ func TGENewsletter(e string) *Response {
 // sendTenWelcomeMails gets up to 10 new subscriptions and sends them each a welcome email
 func sendTenWelcomeMails(done chan bool) {
 	var receivers []Subscription
-	// Start boltDB
-	db, err := storm.Open("my.db")
+	db, err := database.OpenTestDB()
 	if err != nil {
-		log.Panic(err)
-		return
+		return getResponse("server error")
 	}
 	defer db.Close()
 
