@@ -95,3 +95,13 @@ func TestEmailValid(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateUUID(t *testing.T) {
+	var testByte = []byte("hQrqMzS6AZ342Bp0OsdK9TEGvwFSzgzuEzhp0CAqvOUKT8yqtbIRdskgQrgg9LFCntvGaq2R8heZyC5RnLOHLthR7usSv08XfvaI")
+	for i := 0; i < 100; i++ {
+		testString := string(testByte[i:])
+		if _, err := CreateUUID(testString); err == nil {
+			t.Fail()
+		}
+	}
+}
