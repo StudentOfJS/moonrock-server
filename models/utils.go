@@ -24,8 +24,8 @@ type LoginTest struct {
 // UserTest contains validation for user details
 type UserTest struct {
 	Ethereum  string `validate:"regexp=^0x[a-fA-F0-9]{40}$"`
-	FirstName string `validate:"min=1, max=255, regexp=^[a-zA-Z]+$"`
-	LastName  string `validate:"min=1, max=255, regexp=^[a-zA-Z]+$"`
+	FirstName string `validate:"min=2, max=255, regexp=^[a-zA-Z]+$"`
+	LastName  string `validate:"min=2, max=255, regexp=^[a-zA-Z]+$"`
 }
 
 // LoginValid returns true if validation fails for username or password
@@ -39,7 +39,7 @@ func LoginValid(u string, p string) error {
 
 // UserValid returns true if validation fails for user details
 func UserValid(e string, f string, l string) error {
-	signupRequest := UserTest{Ethereum: e, FirstName: f, LastName: f}
+	signupRequest := UserTest{Ethereum: e, FirstName: f, LastName: l}
 	if errs := validator.Validate(signupRequest); errs != nil {
 		return errors.New("invalid user")
 	}
