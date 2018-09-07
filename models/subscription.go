@@ -49,7 +49,7 @@ func sendTenWelcomeMails(done chan bool) {
 	var receivers []Subscription
 	db, err := database.OpenDB()
 	if err != nil {
-		return getResponse("server error")
+		return
 	}
 	defer db.Close()
 
