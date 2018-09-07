@@ -45,19 +45,7 @@ func HandleDB() {
 	db.Save(&clientCredentials)
 }
 
-// // AccessDB opens access to the production DB
-// func AccessDB(done <-chan bool, dbErr chan<- error) {
-// 	var err error
-// 	DB, err = storm.Open("my.db")
-// 	if err != nil {
-// 		dbErr <- errors.New("production database failed to open")
-// 	}
-// 	if <-done {
-// 		DB.Close()
-// 	}
-// }
-
-// OpenTestDB opens access to the test DB
+// OpenTestDB attempts to open access to the test DB and returns a pointer to the db and an error
 func OpenTestDB() (*storm.DB, error) {
 	db, err := storm.Open("test.db")
 	if err != nil {
