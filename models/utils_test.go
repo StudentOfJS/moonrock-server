@@ -108,6 +108,22 @@ func TestCreateUUID(t *testing.T) {
 	}
 }
 
+// @todo: comlete TesLoginCheck - create valid user and delete valid user in loop
+func TestLoginCheck(t *testing.T) {
+	for _, login := range testLogins {
+		if login.valid {
+
+			if err := LoginCheck(login.username, login.password); err != nil {
+				t.Fail()
+			}
+		} else {
+			if err := LoginCheck(login.username, login.password); err == nil {
+				t.Fail()
+			}
+		}
+	}
+}
+
 func TestHashPassword(t *testing.T) {
 	for _, login := range testLogins {
 		hash, err := HashPassword(login.password)
