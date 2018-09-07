@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/asdine/storm"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/studentofjs/moonrock-server/database"
 	"github.com/studentofjs/moonrock-server/models"
 )
 
@@ -32,6 +32,20 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// Helper function to process a request and test its response
+func testHTTPResponse(t *testing.T, r *gin.Engine, req *http.Request, f func(w *httptest.ResponseRecorder) bool) {
+
+	// Create a response recorder
+	w := httptest.NewRecorder()
+
+	// Create the service and process the above request.
+	r.ServeHTTP(w, req)
+
+	if !f(w) {
+		t.Fail()
+	}
+}
+
 /* ------------------- API ------------------------- */
 
 func router() *gin.Engine {
@@ -48,11 +62,11 @@ func router() *gin.Engine {
 }
 
 func removeTestUser() error {
-	db, err := storm.Open("test.db")
-	defer db.Close()
+	db, err := database.OpenTestDB()
 	if err != nil {
 		return errors.New("Database failed to open")
 	}
+	defer db.Close()
 	var user models.User
 	err = db.One("EthereumAddress", eth, &user)
 	if err != nil {
