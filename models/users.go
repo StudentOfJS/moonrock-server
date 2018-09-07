@@ -5,6 +5,7 @@ import (
 
 	"github.com/asdine/storm"
 	"github.com/satori/go.uuid"
+	"github.com/studentofjs/moonrock-server/database"
 	"github.com/studentofjs/moonrock-server/mailer"
 )
 
@@ -25,11 +26,11 @@ type User struct {
 
 // UpdateContributionAddress uses an ID to find user and updates their contribution address
 func UpdateContributionAddress(id int, e string) *Response {
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
+	defer db.Close()
 	if err := db.UpdateField(&User{ID: id}, "EthereumAddress", e); err != nil {
 		return getResponse("invalid address")
 	}
@@ -39,11 +40,11 @@ func UpdateContributionAddress(id int, e string) *Response {
 // ConfirmAccount checks a resetCode against the DB and returns an error string or
 func ConfirmAccount(c string) *Response {
 	rc, _ := uuid.FromString(c)
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
+	defer db.Close()
 	var user User
 	if err := db.One("ResetCode", rc, &user); err != nil {
 		return getResponse("user doesn't exist")
@@ -59,11 +60,11 @@ func ForgotPassword(u string) *Response {
 	resetcode := uuid.Must(uuid.NewV4())
 	rc := resetcode.String()
 
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
+	defer db.Close()
 
 	var user User
 	if err := db.One("Username", u, &user); err != nil {
@@ -84,11 +85,11 @@ func ForgotPassword(u string) *Response {
 // GetContributionAddress returns the saved address of the user
 func GetContributionAddress(i string) (string, *Response) {
 	var user User
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenDB()
 	if err != nil {
 		return "", getResponse("server error")
 	}
+	defer db.Close()
 	id, e := strconv.Atoi(i)
 	if e != nil {
 		return "", getResponse("unauthenticated")
@@ -131,11 +132,11 @@ func Register(a, c, e, f, l, p, u string) *Response {
 		Username:        u,
 	}
 	// Start boltDB
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
+	defer db.Close()
 	if err := db.Save(&user); err == storm.ErrAlreadyExists {
 		return getResponse("already signed up")
 	}
@@ -162,11 +163,11 @@ func ResetPassword(p, r, u string) *Response {
 		return getResponse("server error")
 	}
 
-	db, err := storm.Open("my.db")
-	defer db.Close()
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
+	defer db.Close()
 
 	var user User
 	err = db.One("Username", u, &user)
@@ -187,11 +188,13 @@ func ResetPassword(p, r, u string) *Response {
 // UpdateUserDetails updates user details supplied to API
 func UpdateUserDetails(a, c, f, i, l string) *Response {
 	id, _ := strconv.Atoi(i)
-	db, err := storm.Open("my.db")
-	defer db.Close()
+
+	db, err := database.OpenDB()
 	if err != nil {
 		return getResponse("server error")
 	}
+	defer db.Close()
+
 	if err := db.Update(&User{
 		ID:          id,
 		Address:     a,
