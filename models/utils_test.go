@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -16,6 +15,11 @@ type testUser struct {
 	firstname string
 	lastname  string
 	valid     bool
+}
+
+type testEmail struct {
+	email string
+	valid bool
 }
 
 var testLogins = []testLogin{
@@ -37,6 +41,17 @@ var testUsers = []testUser{
 	{ethereum: "08511d6c42Bd247D82746c17a3EE", firstname: "terrence", lastname: "phillip", valid: false},
 	{ethereum: "0x08511d6c42Bd247D82746c17a3EEf0Cb235f2c48", firstname: "", lastname: "Morty", valid: false},
 	{ethereum: "0x08511d6c42Bd247D82746c17a3EEf0Cb235f2c48", firstname: "Rick", lastname: "", valid: false},
+}
+
+var testEmails = []testEmail{
+	{email: "test@test.com", valid: true},
+	{email: "test2@test.com.au", valid: true},
+	{email: "test@test.co", valid: true},
+	{email: "test@test.net.au", valid: true},
+	{email: "@test.com", valid: false},
+	{email: "test2@testcom", valid: false},
+	{email: "test@.co", valid: false},
+	{email: "test.com", valid: false},
 }
 
 func TestLoginValid(t *testing.T) {
@@ -67,7 +82,20 @@ func TestUserValid(t *testing.T) {
 			}
 		} else {
 			if err := UserValid(user.ethereum, user.firstname, user.lastname); err == nil {
-				fmt.Println(user.ethereum, user.firstname, user.lastname)
+				t.Fail()
+			}
+		}
+	}
+}
+
+func TestEmailValid(t *testing.T) {
+	for _, email := range testEmails {
+		if email.valid {
+			if err := EmailValid(email.email); err != nil {
+				t.Fail()
+			}
+		} else {
+			if err := EmailValid(email.email); err == nil {
 				t.Fail()
 			}
 		}
