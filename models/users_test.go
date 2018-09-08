@@ -139,6 +139,7 @@ func TestConfirmAccount(t *testing.T) {
 	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("server error")
+		return
 	}
 	defer db.Close()
 	for _, u := range testCompleteUsers {
@@ -213,20 +214,22 @@ func TestUpdateUserDetails(t *testing.T) {
 	defer db.Close()
 
 	for _, u := range testCompleteUsers {
-		if err := db.Update(&User{
-			ID:          u.id,
-			Address:     "test_address",
-			CountryCode: "AU",
-			FirstName:   "test",
-			LastName:    "change",
-		}); err != nil {
-			t.Error("Updating user details failed")
+		var user User
+		if err = db.One("ID", u.id, &user); err != nil {
+			t.Error("cannot find user")
+			return
+		}
+		user.Address = "test_address"
+		user.CountryCode = "AU"
+		user.FirstName = "test"
+		user.LastName = "change"
+
+		if err := db.Update(&user); err != nil {
+			t.Errorf("Updating user details failed with error: %v", err)
 			return
 		}
 
-		var user User
-		err = db.One("ID", u.id, &user)
-		if err != nil {
+		if err := db.One("ID", u.id, &user); err != nil {
 			t.Error("User not searchable after update")
 			return
 		}
