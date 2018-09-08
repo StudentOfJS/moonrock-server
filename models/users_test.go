@@ -24,6 +24,7 @@ type testCompleteUser struct {
 
 var testCompleteUsers = []testCompleteUser{
 	{
+		id:        1,
 		address:   "1 Chester Field Green, Baltimore Fields, Baltimore, MA",
 		confirmed: false,
 		country:   "US",
@@ -36,6 +37,7 @@ var testCompleteUsers = []testCompleteUser{
 		user:      "teddy.w@test.com",
 	},
 	{
+		id:        2,
 		address:   "12 Bacon Court, Saltash, Cornwall, UK",
 		confirmed: false,
 		country:   "UK",
@@ -48,6 +50,7 @@ var testCompleteUsers = []testCompleteUser{
 		user:      "dave@test.com",
 	},
 	{
+		id:        3,
 		address:   "82 Avalon Plains, Esperance, WA, Australia",
 		confirmed: false,
 		country:   "AU",
@@ -60,6 +63,7 @@ var testCompleteUsers = []testCompleteUser{
 		user:      "tad@test.com",
 	},
 	{
+		id:        4,
 		address:   "8 Tornado Alley, Aliceville, Wisconsin",
 		confirmed: false,
 		country:   "US",
@@ -72,6 +76,7 @@ var testCompleteUsers = []testCompleteUser{
 		user:      "a.s@test.com",
 	},
 	{
+		id:        5,
 		address:   "Fisherman's Cottage, Smugglers Cove, Turks and Cacos",
 		confirmed: false,
 		country:   "TC",
@@ -179,5 +184,39 @@ func TestResetPassword(t *testing.T) {
 			db.UpdateField(&User{ResetCode: u.reset}, "ResetCode", newResetCode)
 		}
 		t.Error("reset codes not equal")
+	}
+}
+
+// UpdateUserDetails updates user details supplied to API
+func TestUpdateUserDetails(t *testing.T) {
+	db, err := database.OpenTestDB()
+	if err != nil {
+		t.Error("opening test db failed")
+	}
+	defer db.Close()
+
+	for _, u := range testCompleteUsers {
+		if err := db.Update(&User{
+			ID:          u.id,
+			Address:     "test_address",
+			CountryCode: "AU",
+			FirstName:   "test",
+			LastName:    "change",
+		}); err != nil {
+			t.Error("Updating user details failed")
+		}
+
+		var user User
+		err = db.One("ID", u.id, &user)
+		if err != nil {
+			t.Error("User not searchable after update")
+		}
+		if user.Username != u.user || user.EthereumAddress != u.eth || user.Group != u.group {
+			t.Error("non updated fields mutated during update")
+		}
+
+		if user.Address != "test_address" || user.FirstName != "test" {
+			t.Error("update occured without changing requsted fields")
+		}
 	}
 }
