@@ -24,7 +24,7 @@ func TestOpenProductionDB(t *testing.T) {
 func TestAccessDB(t *testing.T) {
 	db, err := OpenTestDB()
 	if err != nil {
-		t.Errorf("Opeining test.db failed with: %v", err)
+		t.Errorf("Opening test.db failed with: %v", err)
 	}
 
 	dbTest := testDB{
