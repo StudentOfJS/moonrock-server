@@ -67,7 +67,7 @@ func LoginCheck(u string, p string) error {
 		return errors.New("invalid login")
 	}
 	var user User
-	db, err := database.OpenDB()
+	db, err := database.OpenProdDB("../database/")
 	if err != nil {
 		log.Println("error opening DB")
 	}
