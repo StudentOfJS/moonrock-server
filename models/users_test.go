@@ -8,7 +8,7 @@ import (
 	"github.com/studentofjs/moonrock-server/database"
 )
 
-type testUser struct {
+type testCompleteUser struct {
 	address   string
 	confirmed bool
 	country   string
@@ -22,7 +22,7 @@ type testUser struct {
 	user      string
 }
 
-var testUsers = []testUser{
+var testCompleteUsers = []testCompleteUser{
 	{
 		address:   "1 Chester Field Green, Baltimore Fields, Baltimore, MA",
 		confirmed: false,
@@ -92,7 +92,7 @@ func TestValidRegister(t *testing.T) {
 		t.Error("server error")
 	}
 	defer db.Close()
-	for _, r := range testUsers {
+	for _, r := range testCompleteUsers {
 		if err := LoginValid(r.user, r.password); err != nil {
 			t.Error("invalid username or password")
 		}
@@ -129,7 +129,7 @@ func TestConfirmAccount(t *testing.T) {
 		t.Error("server error")
 	}
 	defer db.Close()
-	for _, u := range testUsers {
+	for _, u := range testCompleteUsers {
 		var user User
 		if err := db.One("ResetCode", u.reset, &user); err != nil {
 			t.Error("failed seraching user by reset code")
