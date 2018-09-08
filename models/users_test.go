@@ -5,10 +5,15 @@ import (
 	"testing"
 
 	"github.com/asdine/storm"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/google/uuid"
 	"github.com/studentofjs/moonrock-server/database"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type TestResetCodes struct {
+	ID         string `storm:"index"`
+	ResetCodes map[int]string
+}
 
 type testCompleteUser struct {
 	address   string
@@ -20,7 +25,6 @@ type testCompleteUser struct {
 	id        int
 	lastname  string
 	password  string
-	reset     uuid.UUID
 	user      string
 }
 
@@ -35,7 +39,6 @@ var testCompleteUsers = []testCompleteUser{
 		group:     "public_investor",
 		lastname:  "Weinstein",
 		password:  "TotalMayhemw13",
-		reset:     uuid.Must(uuid.NewV4()),
 		user:      "teddy@test.com",
 	},
 	{
@@ -48,7 +51,6 @@ var testCompleteUsers = []testCompleteUser{
 		group:     "public_investor",
 		lastname:  "Saville",
 		password:  "Loser322452",
-		reset:     uuid.Must(uuid.NewV4()),
 		user:      "dave@test.com",
 	},
 	{
@@ -61,7 +63,6 @@ var testCompleteUsers = []testCompleteUser{
 		group:     "public_investor",
 		lastname:  "Tad",
 		password:  "SurfOrDie2",
-		reset:     uuid.Must(uuid.NewV4()),
 		user:      "tad@test.com",
 	},
 	{
@@ -74,7 +75,6 @@ var testCompleteUsers = []testCompleteUser{
 		group:     "public_investor",
 		lastname:  "Smith",
 		password:  "fhweuhJwriwe34",
-		reset:     uuid.Must(uuid.NewV4()),
 		user:      "al@test.com",
 	},
 	{
@@ -87,10 +87,11 @@ var testCompleteUsers = []testCompleteUser{
 		group:     "public_investor",
 		lastname:  "Marston",
 		password:  "r4j3ok4j50f",
-		reset:     uuid.Must(uuid.NewV4()),
 		user:      "peter@test.com",
 	},
 }
+
+var resetCodes = make(map[int]string)
 
 // Register validates the user signup form and saves to db
 func TestValidRegister(t *testing.T) {
@@ -100,7 +101,7 @@ func TestValidRegister(t *testing.T) {
 		return
 	}
 	defer db.Close()
-	for _, r := range testCompleteUsers {
+	for i, r := range testCompleteUsers {
 		if err := LoginValid(r.user, r.password); err != nil {
 			t.Errorf("invalid username or password %d %v", r.id, err)
 			return
@@ -115,6 +116,8 @@ func TestValidRegister(t *testing.T) {
 			t.Error("server error")
 			return
 		}
+		reset := uuid.New().String()
+		resetCodes[i] = reset
 
 		user := User{
 			Address:         r.address,
@@ -125,13 +128,29 @@ func TestValidRegister(t *testing.T) {
 			Group:           r.group,
 			LastName:        r.lastname,
 			Password:        hash,
-			ResetCode:       r.reset,
+			ResetCode:       reset,
 			Username:        r.user,
 		}
 		if err := db.Save(&user); err == storm.ErrAlreadyExists {
 			t.Error("user already signed up")
 			return
 		}
+	}
+	testResetCodes := TestResetCodes{
+		ID:         "test",
+		ResetCodes: resetCodes,
+	}
+	if err := db.Save(&testResetCodes); err == storm.ErrAlreadyExists {
+		t.Error("user already signed up")
+		return
+	}
+
+}
+
+func TestResestCodesCreated(t *testing.T) {
+	for k, v := range resetCodes {
+		fmt.Printf("key: %d, value: %s", k, v)
+		t.Errorf("key: %d, value: %s", k, v)
 	}
 }
 
@@ -142,9 +161,9 @@ func TestConfirmAccount(t *testing.T) {
 		return
 	}
 	defer db.Close()
-	for _, u := range testCompleteUsers {
+	for _, v := range resetCodes {
 		var user User
-		if err := db.One("ResetCode", u.reset, &user); err != nil {
+		if err := db.One("ResetCode", v, &user); err != nil {
 			t.Errorf("failed searching user by reset code: %v", err)
 			return
 		}
@@ -184,23 +203,32 @@ func TestResetPassword(t *testing.T) {
 		return
 	}
 
-	for _, u := range testCompleteUsers {
+	var testResetCodes TestResetCodes
+	if err := db.One("ID", "test", &testResetCodes); err != nil {
+		t.Errorf("failed searching user by reset code: %v", err)
+		return
+	}
+
+	for i, u := range testCompleteUsers {
 		var user User
 		err = db.One("Username", u.user, &user)
 		if err != nil {
 			t.Error("can't locate user in db")
 			return
 		}
-		if uuid.Equal(user.ResetCode, u.reset) {
-			if err := db.UpdateField(&User{Username: u.user}, "Password", hash); err != nil {
-				t.Error("updating password field failed")
+
+		if user.ResetCode == testResetCodes.ResetCodes[i] {
+			if err := db.UpdateField(&User{ID: u.id}, "Password", hash); err != nil {
+				t.Errorf("updating password field failed, with error: %v", err)
 				return
 			}
-			newResetCode := uuid.Must(uuid.NewV4())
-			db.UpdateField(&User{ResetCode: u.reset}, "ResetCode", newResetCode)
+			reset := uuid.New()
+			newResetCode := reset.String()
+			db.UpdateField(&User{ID: u.id}, "ResetCode", newResetCode)
+		} else {
+			t.Errorf("reset codes not equal: %s vs %s", user.ResetCode, testResetCodes.ResetCodes[i])
+			return
 		}
-		t.Error("reset codes not equal")
-		return
 	}
 }
 
@@ -233,8 +261,8 @@ func TestUpdateUserDetails(t *testing.T) {
 			t.Error("User not searchable after update")
 			return
 		}
-		if user.Username != u.user || user.EthereumAddress != u.eth || user.Group != u.group {
-			t.Error("non updated fields mutated during update")
+		if user.Username != u.user || user.Group != u.group {
+			t.Errorf("non updated fields mutated during update, : %s vs %s, %s vs %s", user.Username, u.user, user.Group, u.group)
 			return
 		}
 
@@ -259,7 +287,7 @@ func TestDeleteUsers(t *testing.T) {
 			t.Error("failed trying to delete, user not found")
 			return
 		}
-		if err := bcrypt.CompareHashAndPassword(user.Password, []byte(u.password)); err != nil {
+		if err := bcrypt.CompareHashAndPassword(user.Password, []byte("this_is_a_test")); err != nil {
 			t.Error("failed trying to delete, passwords don't match")
 			return
 		}

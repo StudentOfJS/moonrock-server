@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/asdine/storm"
-	"github.com/satori/go.uuid"
+	uuid "github.com/google/uuid"
 	"github.com/studentofjs/moonrock-server/database"
 	"github.com/studentofjs/moonrock-server/mailer"
 	"golang.org/x/crypto/bcrypt"
@@ -12,17 +12,17 @@ import (
 
 // User struct contains all the user data
 type User struct {
-	Address         string    // this field will not be indexed
-	Confirmed       bool      // this field will not be indexed
-	CountryCode     string    // this field will not be indexed
-	EthereumAddress string    // this field will not be indexed
-	FirstName       string    // this field will not be indexed
-	Group           string    `storm:"index"`        // this field will be indexed
-	ID              int       `storm:"id,increment"` // primary key with auto increment
-	LastName        string    // this field will not be indexed
-	Password        []byte    // this field will not be indexed
-	ResetCode       uuid.UUID // this field will not be indexed
-	Username        string    `storm:"unique"` // this field will be indexed with a unique constraint
+	Address         string // this field will not be indexed
+	Confirmed       bool   // this field will not be indexed
+	CountryCode     string // this field will not be indexed
+	EthereumAddress string // this field will not be indexed
+	FirstName       string // this field will not be indexed
+	Group           string `storm:"index"`        // this field will be indexed
+	ID              int    `storm:"id,increment"` // primary key with auto increment
+	LastName        string // this field will not be indexed
+	Password        []byte // this field will not be indexed
+	ResetCode       string // this field will not be indexed
+	Username        string `storm:"unique"` // this field will be indexed with a unique constraint
 }
 
 // UpdateContributionAddress uses an ID to find user and updates their contribution address
@@ -40,14 +40,14 @@ func UpdateContributionAddress(id int, e string) *Response {
 
 // ConfirmAccount checks a resetCode against the DB and returns an error string or
 func ConfirmAccount(c string) *Response {
-	rc, _ := uuid.FromString(c)
+
 	db, err := database.OpenProdDB("../database/")
 	if err != nil {
 		return getResponse("server error")
 	}
 	defer db.Close()
 	var user User
-	if err := db.One("ResetCode", rc, &user); err != nil {
+	if err := db.One("ResetCode", c, &user); err != nil {
 		return getResponse("user doesn't exist")
 	}
 	if err := db.UpdateField(&User{ID: user.ID}, "Confirmed", true); err != nil {
@@ -58,7 +58,7 @@ func ConfirmAccount(c string) *Response {
 
 // ForgotPassword sends a reset email with unique password reset link
 func ForgotPassword(u string) *Response {
-	resetcode := uuid.Must(uuid.NewV4())
+	resetcode := uuid.New()
 	rc := resetcode.String()
 
 	db, err := database.OpenProdDB("../database/")
@@ -71,7 +71,7 @@ func ForgotPassword(u string) *Response {
 	if err := db.One("Username", u, &user); err != nil {
 		return getResponse("invalid login")
 	}
-	if err := db.UpdateField(&User{ID: user.ID}, "ResetCode", resetcode); err != nil {
+	if err := db.UpdateField(&User{ID: user.ID}, "ResetCode", rc); err != nil {
 		return getResponse("server error")
 	}
 
@@ -105,7 +105,8 @@ func GetContributionAddress(i string) (string, *Response) {
 
 // Register validates the user signup form and saves to db
 func Register(a, c, e, f, l, p, u string) *Response {
-	resetcode := uuid.Must(uuid.NewV4())
+	reset := uuid.New()
+	resetcode := reset.String()
 
 	if err := LoginValid(u, p); err != nil {
 		return getResponse("invalid signup")
@@ -159,11 +160,6 @@ func ResetPassword(p, r, u string) *Response {
 		return getResponse("server error")
 	}
 
-	reset, e := uuid.FromString(r)
-	if e != nil {
-		return getResponse("server error")
-	}
-
 	db, err := database.OpenProdDB("../database/")
 	if err != nil {
 		return getResponse("server error")
@@ -175,12 +171,12 @@ func ResetPassword(p, r, u string) *Response {
 	if err != nil {
 		return getResponse("invalid")
 	}
-	if uuid.Equal(user.ResetCode, reset) {
+	if user.ResetCode == r {
 		if err := db.UpdateField(&User{Username: u}, "Password", hash); err != nil {
 			return getResponse("token expired, please try again")
 		}
-		newResetCode := uuid.Must(uuid.NewV4())
-		db.UpdateField(&User{ResetCode: reset}, "ResetCode", newResetCode)
+		newResetCode := uuid.New().String()
+		db.UpdateField(&User{ResetCode: r}, "ResetCode", newResetCode)
 		return getResponse("ok")
 	}
 	return getResponse("token expired, please try again")
