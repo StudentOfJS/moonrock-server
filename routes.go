@@ -80,7 +80,7 @@ func (*UserVerifier) AddClaims(credential, tokenID, tokenType, scope string) (ma
 
 // StoreTokenId saves the token Id generated for the user
 func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType string) error {
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return errors.New("database error")
 	}
@@ -104,7 +104,7 @@ func (*UserVerifier) StoreTokenId(credential, tokenID, refreshTokenId, tokenType
 
 // AddProperties provides additional information to the token response
 func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope string) (map[string]string, error) {
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 
 		return nil, errors.New("database error")
@@ -142,7 +142,7 @@ func (*UserVerifier) AddProperties(credential, tokenID, tokenType string, scope 
 
 // ValidateTokenId validates token Id
 func (*UserVerifier) ValidateTokenId(credential, tokenId, refreshTokenID, tokenType string) error {
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return errors.New("database error")
 	}
