@@ -5,8 +5,8 @@ import (
 )
 
 // OpenTestDB attempts to open access to the test DB and returns a pointer to the db and an error
-func OpenTestDB() (*storm.DB, error) {
-	db, err := storm.Open("test.db")
+func OpenTestDB(dbName string) (*storm.DB, error) {
+	db, err := storm.Open(dbName)
 	if err != nil {
 		return nil, err
 	}

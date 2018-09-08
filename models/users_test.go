@@ -1,11 +1,13 @@
 package models
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/asdine/storm"
 	uuid "github.com/satori/go.uuid"
 	"github.com/studentofjs/moonrock-server/database"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type testCompleteUser struct {
@@ -32,9 +34,9 @@ var testCompleteUsers = []testCompleteUser{
 		firstname: "Teddy",
 		group:     "public_investor",
 		lastname:  "Weinstein",
-		password:  "TotalMayhem",
+		password:  "TotalMayhemw13",
 		reset:     uuid.Must(uuid.NewV4()),
-		user:      "teddy.w@test.com",
+		user:      "teddy@test.com",
 	},
 	{
 		id:        2,
@@ -45,7 +47,7 @@ var testCompleteUsers = []testCompleteUser{
 		firstname: "Dave",
 		group:     "public_investor",
 		lastname:  "Saville",
-		password:  "Loser",
+		password:  "Loser322452",
 		reset:     uuid.Must(uuid.NewV4()),
 		user:      "dave@test.com",
 	},
@@ -71,9 +73,9 @@ var testCompleteUsers = []testCompleteUser{
 		firstname: "Avril",
 		group:     "public_investor",
 		lastname:  "Smith",
-		password:  "fhweuhwriwe34",
+		password:  "fhweuhJwriwe34",
 		reset:     uuid.Must(uuid.NewV4()),
-		user:      "a.s@test.com",
+		user:      "al@test.com",
 	},
 	{
 		id:        5,
@@ -92,14 +94,14 @@ var testCompleteUsers = []testCompleteUser{
 
 // Register validates the user signup form and saves to db
 func TestValidRegister(t *testing.T) {
-	db, err := database.OpenTestDB()
+	db, err := database.OpenTestDB("../database/test.db")
 	if err != nil {
 		t.Error("server error")
 	}
 	defer db.Close()
 	for _, r := range testCompleteUsers {
 		if err := LoginValid(r.user, r.password); err != nil {
-			t.Error("invalid username or password")
+			t.Errorf("invalid username or password %d %v", r.id, err)
 		}
 		if err := UserValid(r.eth, r.firstname, r.lastname); err != nil {
 			t.Error("invalid signup details")
@@ -129,7 +131,7 @@ func TestValidRegister(t *testing.T) {
 }
 
 func TestConfirmAccount(t *testing.T) {
-	db, err := database.OpenTestDB()
+	db, err := database.OpenTestDB("../database/test.db")
 	if err != nil {
 		t.Error("server error")
 	}
@@ -137,7 +139,7 @@ func TestConfirmAccount(t *testing.T) {
 	for _, u := range testCompleteUsers {
 		var user User
 		if err := db.One("ResetCode", u.reset, &user); err != nil {
-			t.Error("failed seraching user by reset code")
+			t.Error("failed searching user by reset code")
 		}
 		if err := db.UpdateField(&User{ID: user.ID}, "Confirmed", true); err != nil {
 			t.Error("failed trying to update user to confirmed true")
@@ -146,7 +148,7 @@ func TestConfirmAccount(t *testing.T) {
 }
 
 func TestUpdateContributionAddress(t *testing.T) {
-	db, err := database.OpenTestDB()
+	db, err := database.OpenTestDB("../database/test.db")
 	if err != nil {
 		t.Error("server error")
 	}
@@ -160,7 +162,7 @@ func TestUpdateContributionAddress(t *testing.T) {
 }
 
 func TestResetPassword(t *testing.T) {
-	db, err := database.OpenTestDB()
+	db, err := database.OpenTestDB("../database/test.db")
 	if err != nil {
 		t.Error("opening test db failed")
 	}
@@ -189,7 +191,7 @@ func TestResetPassword(t *testing.T) {
 
 // UpdateUserDetails updates user details supplied to API
 func TestUpdateUserDetails(t *testing.T) {
-	db, err := database.OpenTestDB()
+	db, err := database.OpenTestDB("../database/test.db")
 	if err != nil {
 		t.Error("opening test db failed")
 	}
@@ -219,4 +221,34 @@ func TestUpdateUserDetails(t *testing.T) {
 			t.Error("update occured without changing requsted fields")
 		}
 	}
+}
+
+func TestDeleteUsers(t *testing.T) {
+	db, err := database.OpenTestDB("../database/test.db")
+	if err != nil {
+		t.Error("opening test db failed")
+	}
+	defer db.Close()
+
+	for _, u := range testCompleteUsers {
+		var user User
+		if err := db.One("ID", u.id, &user); err != nil {
+			t.Error("failed trying to delete, user not found")
+		}
+		if err := bcrypt.CompareHashAndPassword(user.Password, []byte(u.password)); err != nil {
+			t.Error("failed trying to delete, passwords don't match")
+		}
+		if err := db.DeleteStruct(&user); err != nil {
+			t.Errorf("failed trying to delete, delete struct failed with error: %v", err)
+		}
+	}
+	var users []User
+	if err := db.Range("ID", 1, 5, &users); err != nil {
+		fmt.Println(err.Error())
+	}
+	leftOver := len(users)
+	if leftOver > 0 {
+		t.Errorf("not all users deleted, %d remain", leftOver)
+	}
+
 }
