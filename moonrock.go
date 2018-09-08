@@ -21,7 +21,7 @@ func apiRouter() {
 }
 
 func init() {
-	db, err := database.OpenDB()
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		log.Fatalf("database error:%v", err)
 		return
