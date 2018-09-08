@@ -97,19 +97,23 @@ func TestValidRegister(t *testing.T) {
 	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("server error")
+		return
 	}
 	defer db.Close()
 	for _, r := range testCompleteUsers {
 		if err := LoginValid(r.user, r.password); err != nil {
 			t.Errorf("invalid username or password %d %v", r.id, err)
+			return
 		}
 		if err := UserValid(r.eth, r.firstname, r.lastname); err != nil {
 			t.Error("invalid signup details")
+			return
 		}
 
 		hash, err := HashPassword(r.password)
 		if err != nil {
 			t.Error("server error")
+			return
 		}
 
 		user := User{
@@ -126,6 +130,7 @@ func TestValidRegister(t *testing.T) {
 		}
 		if err := db.Save(&user); err == storm.ErrAlreadyExists {
 			t.Error("user already signed up")
+			return
 		}
 	}
 }
@@ -139,10 +144,12 @@ func TestConfirmAccount(t *testing.T) {
 	for _, u := range testCompleteUsers {
 		var user User
 		if err := db.One("ResetCode", u.reset, &user); err != nil {
-			t.Error("failed searching user by reset code")
+			t.Errorf("failed searching user by reset code: %v", err)
+			return
 		}
 		if err := db.UpdateField(&User{ID: user.ID}, "Confirmed", true); err != nil {
 			t.Error("failed trying to update user to confirmed true")
+			return
 		}
 	}
 }
@@ -151,12 +158,14 @@ func TestUpdateContributionAddress(t *testing.T) {
 	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("server error")
+		return
 	}
 	defer db.Close()
 
 	for _, u := range testCompleteUsers {
 		if err := db.UpdateField(&User{ID: u.id}, "EthereumAddress", "0xCaE9eFE97895EF43e72791a10254d6abDdb17Ae9"); err != nil {
 			t.Error("failed to update eth address")
+			return
 		}
 	}
 }
@@ -165,11 +174,13 @@ func TestResetPassword(t *testing.T) {
 	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("opening test db failed")
+		return
 	}
 	defer db.Close()
 	hash, err := HashPassword("this_is_a_test")
 	if err != nil {
 		t.Error("password hashing failed")
+		return
 	}
 
 	for _, u := range testCompleteUsers {
@@ -177,15 +188,18 @@ func TestResetPassword(t *testing.T) {
 		err = db.One("Username", u.user, &user)
 		if err != nil {
 			t.Error("can't locate user in db")
+			return
 		}
 		if uuid.Equal(user.ResetCode, u.reset) {
 			if err := db.UpdateField(&User{Username: u.user}, "Password", hash); err != nil {
 				t.Error("updating password field failed")
+				return
 			}
 			newResetCode := uuid.Must(uuid.NewV4())
 			db.UpdateField(&User{ResetCode: u.reset}, "ResetCode", newResetCode)
 		}
 		t.Error("reset codes not equal")
+		return
 	}
 }
 
@@ -194,6 +208,7 @@ func TestUpdateUserDetails(t *testing.T) {
 	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("opening test db failed")
+		return
 	}
 	defer db.Close()
 
@@ -206,19 +221,23 @@ func TestUpdateUserDetails(t *testing.T) {
 			LastName:    "change",
 		}); err != nil {
 			t.Error("Updating user details failed")
+			return
 		}
 
 		var user User
 		err = db.One("ID", u.id, &user)
 		if err != nil {
 			t.Error("User not searchable after update")
+			return
 		}
 		if user.Username != u.user || user.EthereumAddress != u.eth || user.Group != u.group {
 			t.Error("non updated fields mutated during update")
+			return
 		}
 
 		if user.Address != "test_address" || user.FirstName != "test" {
 			t.Error("update occured without changing requsted fields")
+			return
 		}
 	}
 }
@@ -227,6 +246,7 @@ func TestDeleteUsers(t *testing.T) {
 	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("opening test db failed")
+		return
 	}
 	defer db.Close()
 
@@ -234,12 +254,15 @@ func TestDeleteUsers(t *testing.T) {
 		var user User
 		if err := db.One("ID", u.id, &user); err != nil {
 			t.Error("failed trying to delete, user not found")
+			return
 		}
 		if err := bcrypt.CompareHashAndPassword(user.Password, []byte(u.password)); err != nil {
 			t.Error("failed trying to delete, passwords don't match")
+			return
 		}
 		if err := db.DeleteStruct(&user); err != nil {
 			t.Errorf("failed trying to delete, delete struct failed with error: %v", err)
+			return
 		}
 	}
 	var users []User
@@ -249,6 +272,7 @@ func TestDeleteUsers(t *testing.T) {
 	leftOver := len(users)
 	if leftOver > 0 {
 		t.Errorf("not all users deleted, %d remain", leftOver)
+		return
 	}
 
 }
