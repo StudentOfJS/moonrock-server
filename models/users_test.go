@@ -1,117 +1,127 @@
 package models
 
+import (
+	"testing"
 
-var testUsers = []User{
-  {
-    Address:         "1 Chester Field Green, Baltimore Fields, Baltimore, MA",
-    Confirmed:       false,
-    CountryCode:     "US",
-    EthereumAddress: "0xe81D72D14B1516e68ac3190a46C93302Cc8eD60f",
-    FirstName:       "Teddy",
-    Group:           "public_investor",
-    LastName:        "Weinstein",
-    Password:        "TotalMayhem",
-    ResetCode:       resetcode,
-    Username:        "teddy.w@test.com",
-  },
-  {
-    Address:         "12 Bacon Court, Saltash, Cornwall, UK",
-    Confirmed:       false,
-    CountryCode:     "UK",
-    EthereumAddress: "0x6a068E0287e55149a2a8396cbC99578f9Ad16A31",
-    FirstName:       "Dave",
-    Group:           "public_investor",
-    LastName:        "Saville",
-    Password:        "Loser",
-    ResetCode:       resetcode,
-    Username:        "dave@test.com",
-  },
-  {
-    Address:         "82 Avalon Plains, Esperance, WA, Australia",
-    Confirmed:       false,
-    CountryCode:     "AU",
-    EthereumAddress: "0xe81D72D14B1516e68ac3190a46C93302Cc8eE60c",
-    FirstName:       "Brad",
-    Group:           "public_investor",
-    LastName:        "Tad",
-    Password:        "SurfOrDie2",
-    ResetCode:       resetcode,
-    Username:        "tad@test.com",
-  },
-  {
-    Address:         "8 Tornado Alley, Aliceville, Wisconsin",
-    Confirmed:       false,
-    CountryCode:     "US",
-    EthereumAddress: "0xe81D72D14B1516e68ac3190a46C93302Cc8eD60f",
-    FirstName:       "Avril",
-    Group:           "public_investor",
-    LastName:        "Smith",
-    Password:        "fhweuhwriwe34",
-    ResetCode:       resetcode,
-    Username:        "a.s@test.com",
-  },
-  {
-    Address:         "Fisherman's Cottage, Smugglers Cove, Turks and Cacos",
-    Confirmed:       false,
-    CountryCode:     "TC",
-    EthereumAddress: "0x595832F8FC6BF59c85C527fEC3740A1b7a361269",
-    FirstName:       "Peter",
-    Group:           "public_investor",
-    LastName:        "Marston",
-    Password:        "r4j3ok4j50f",
-    ResetCode:       resetcode,
-    Username:        "peter@test.com",
-  },
+	"github.com/asdine/storm"
+	uuid "github.com/satori/go.uuid"
+	"github.com/studentofjs/moonrock-server/database"
+)
+
+type testUser struct {
+	address   string
+	confirmed bool
+	country   string
+	eth       string
+	firstname string
+	group     string
+	id        int
+	lastname  string
+	password  string
+	reset     uuid.UUID
+	user      string
 }
 
-
+var testUsers = []testUser{
+	{
+		address:   "1 Chester Field Green, Baltimore Fields, Baltimore, MA",
+		confirmed: false,
+		country:   "US",
+		eth:       "0xe81D72D14B1516e68ac3190a46C93302Cc8eD60f",
+		firstname: "Teddy",
+		group:     "public_investor",
+		lastname:  "Weinstein",
+		password:  "TotalMayhem",
+		reset:     uuid.Must(uuid.NewV4()),
+		user:      "teddy.w@test.com",
+	},
+	{
+		address:   "12 Bacon Court, Saltash, Cornwall, UK",
+		confirmed: false,
+		country:   "UK",
+		eth:       "0x6a068E0287e55149a2a8396cbC99578f9Ad16A31",
+		firstname: "Dave",
+		group:     "public_investor",
+		lastname:  "Saville",
+		password:  "Loser",
+		reset:     uuid.Must(uuid.NewV4()),
+		user:      "dave@test.com",
+	},
+	{
+		address:   "82 Avalon Plains, Esperance, WA, Australia",
+		confirmed: false,
+		country:   "AU",
+		eth:       "0xe81D72D14B1516e68ac3190a46C93302Cc8eE60c",
+		firstname: "Brad",
+		group:     "public_investor",
+		lastname:  "Tad",
+		password:  "SurfOrDie2",
+		reset:     uuid.Must(uuid.NewV4()),
+		user:      "tad@test.com",
+	},
+	{
+		address:   "8 Tornado Alley, Aliceville, Wisconsin",
+		confirmed: false,
+		country:   "US",
+		eth:       "0xe81D72D14B1516e68ac3190a46C93302Cc8eD60f",
+		firstname: "Avril",
+		group:     "public_investor",
+		lastname:  "Smith",
+		password:  "fhweuhwriwe34",
+		reset:     uuid.Must(uuid.NewV4()),
+		user:      "a.s@test.com",
+	},
+	{
+		address:   "Fisherman's Cottage, Smugglers Cove, Turks and Cacos",
+		confirmed: false,
+		country:   "TC",
+		eth:       "0x595832F8FC6BF59c85C527fEC3740A1b7a361269",
+		firstname: "Peter",
+		group:     "public_investor",
+		lastname:  "Marston",
+		password:  "r4j3ok4j50f",
+		reset:     uuid.Must(uuid.NewV4()),
+		user:      "peter@test.com",
+	},
+}
 
 // Register validates the user signup form and saves to db
-func Register(t *testing.T){
+func TestValidRegister(t *testing.T) {
 
-  a, c, e, f, l, p, u string
-	resetcode := uuid.Must(uuid.NewV4())
+	for _, r := range testUsers {
+		if err := LoginValid(r.user, r.password); err != nil {
+			t.Error("invalid username or password")
+		}
+		if err := UserValid(r.eth, r.firstname, r.lastname); err != nil {
+			t.Error("invalid signup details")
+		}
 
-	if err := LoginValid(u, p); err != nil {
-		return getResponse("invalid signup")
-	}
+		hash, err := HashPassword(r.password)
+		if err != nil {
+			t.Error("server error")
+		}
 
-	if err := UserValid(e, f, l); err != nil {
-		return getResponse("invalid signup")
-	}
-	// Generate "hash" to store from username password
-	hash, err := HashPassword(p)
-	if err != nil {
-		return getResponse("server error")
-	}
+		user := User{
+			Address:         r.address,
+			Confirmed:       r.confirmed,
+			CountryCode:     r.country,
+			EthereumAddress: r.eth,
+			FirstName:       r.firstname,
+			Group:           r.group,
+			LastName:        r.lastname,
+			Password:        hash,
+			ResetCode:       r.reset,
+			Username:        r.user,
+		}
 
-	user := User{
-		Address:         a,
-		Confirmed:       false,
-		CountryCode:     c,
-		EthereumAddress: e,
-		FirstName:       f,
-		Group:           "public_investor",
-		LastName:        l,
-		Password:        hash,
-		ResetCode:       resetcode,
-		Username:        u,
-	}
-	// Start boltDB
-	db, err := database.OpenDB()
-	if err != nil {
-		return getResponse("server error")
-	}
-	defer db.Close()
-	if err := db.Save(&user); err == storm.ErrAlreadyExists {
-		return getResponse("already signed up")
-	}
+		db, err := database.OpenTestDB()
+		if err != nil {
+			t.Error("server error")
+		}
+		defer db.Close()
+		if err := db.Save(&user); err == storm.ErrAlreadyExists {
+			t.Error("user already signed up")
+		}
 
-	r := mailer.NewRequest([]string{u}, "Moonrock Account Confirmation")
-	r.Send("templates/register_template.html", map[string]string{
-		"country":  c,
-		"ethereum": e,
-		"name":     f,
-	})
-	return getResponse("ok")
+	}
 }
