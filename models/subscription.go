@@ -21,9 +21,10 @@ type Subscription struct {
 
 // TGENewsletter - signs user up to newsletter with a provided email
 func TGENewsletter(e string) *Response {
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
-		return getResponse("server error")
+		// return getResponse("server error")
+		return &Response{ServerCode: 500, Response: err.Error()}
 	}
 	defer db.Close()
 
@@ -47,7 +48,7 @@ func TGENewsletter(e string) *Response {
 // sendTenWelcomeMails gets up to 10 new subscriptions and sends them each a welcome email
 func sendTenWelcomeMails(done chan bool) {
 	var receivers []Subscription
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return
 	}

@@ -27,7 +27,7 @@ type User struct {
 
 // UpdateContributionAddress uses an ID to find user and updates their contribution address
 func UpdateContributionAddress(id int, e string) *Response {
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return getResponse("server error")
 	}
@@ -41,7 +41,7 @@ func UpdateContributionAddress(id int, e string) *Response {
 // ConfirmAccount checks a resetCode against the DB and returns an error string or
 func ConfirmAccount(c string) *Response {
 
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return getResponse("server error")
 	}
@@ -61,7 +61,7 @@ func ForgotPassword(u string) *Response {
 	resetcode := uuid.New()
 	rc := resetcode.String()
 
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return getResponse("server error")
 	}
@@ -86,7 +86,7 @@ func ForgotPassword(u string) *Response {
 // GetContributionAddress returns the saved address of the user
 func GetContributionAddress(i string) (string, *Response) {
 	var user User
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return "", getResponse("server error")
 	}
@@ -134,7 +134,7 @@ func Register(a, c, e, f, l, p, u string) *Response {
 		Username:        u,
 	}
 	// Start boltDB
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return getResponse("server error")
 	}
@@ -160,7 +160,7 @@ func ResetPassword(p, r, u string) *Response {
 		return getResponse("server error")
 	}
 
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return getResponse("server error")
 	}
@@ -186,7 +186,7 @@ func ResetPassword(p, r, u string) *Response {
 func UpdateUserDetails(a, c, f, i, l string) *Response {
 	id, _ := strconv.Atoi(i)
 
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return getResponse("server error")
 	}
@@ -207,7 +207,7 @@ func UpdateUserDetails(a, c, f, i, l string) *Response {
 // DeleteUser finds a user by ID, checks the passwords match and deletes if they do
 func DeleteUser(i, p string) *Response {
 	id, _ := strconv.Atoi(i)
-	db, err := database.OpenProdDB("../database/")
+	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		return getResponse("server error")
 	}
