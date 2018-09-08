@@ -94,7 +94,7 @@ var testCompleteUsers = []testCompleteUser{
 
 // Register validates the user signup form and saves to db
 func TestValidRegister(t *testing.T) {
-	db, err := database.OpenTestDB("../database/test.db")
+	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("server error")
 	}
@@ -131,7 +131,7 @@ func TestValidRegister(t *testing.T) {
 }
 
 func TestConfirmAccount(t *testing.T) {
-	db, err := database.OpenTestDB("../database/test.db")
+	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("server error")
 	}
@@ -148,7 +148,7 @@ func TestConfirmAccount(t *testing.T) {
 }
 
 func TestUpdateContributionAddress(t *testing.T) {
-	db, err := database.OpenTestDB("../database/test.db")
+	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("server error")
 	}
@@ -162,7 +162,7 @@ func TestUpdateContributionAddress(t *testing.T) {
 }
 
 func TestResetPassword(t *testing.T) {
-	db, err := database.OpenTestDB("../database/test.db")
+	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("opening test db failed")
 	}
@@ -191,7 +191,7 @@ func TestResetPassword(t *testing.T) {
 
 // UpdateUserDetails updates user details supplied to API
 func TestUpdateUserDetails(t *testing.T) {
-	db, err := database.OpenTestDB("../database/test.db")
+	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("opening test db failed")
 	}
@@ -224,7 +224,7 @@ func TestUpdateUserDetails(t *testing.T) {
 }
 
 func TestDeleteUsers(t *testing.T) {
-	db, err := database.OpenTestDB("../database/test.db")
+	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		t.Error("opening test db failed")
 	}
