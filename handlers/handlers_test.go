@@ -62,7 +62,7 @@ func router() *gin.Engine {
 }
 
 func removeTestUser() error {
-	db, err := database.OpenTestDB()
+	db, err := database.OpenTestDB("../database/")
 	if err != nil {
 		return errors.New("Database failed to open")
 	}
