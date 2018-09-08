@@ -19,6 +19,7 @@ func getResponse(r string) *Response {
 		"invalid signup":                  400,
 		"invalid address":                 400,
 		"user doesn't exist":              400,
+		"user not found":                  400,
 		"token expired, please try again": 400,
 		"update failed":                   400,
 		"already signed up":               400,

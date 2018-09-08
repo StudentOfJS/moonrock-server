@@ -7,6 +7,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/studentofjs/moonrock-server/database"
 	"github.com/studentofjs/moonrock-server/mailer"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // User struct contains all the user data
@@ -202,6 +203,28 @@ func UpdateUserDetails(a, c, f, i, l string) *Response {
 		FirstName:   f,
 		LastName:    l,
 	}); err != nil {
+		return getResponse("server error")
+	}
+	return getResponse("ok")
+}
+
+// DeleteUser finds a user by ID, checks the passwords match and deletes if they do
+func DeleteUser(i, p string) *Response {
+	id, _ := strconv.Atoi(i)
+	db, err := database.OpenDB()
+	if err != nil {
+		return getResponse("server error")
+	}
+	defer db.Close()
+
+	var user User
+	if err := db.One("ID", id, &user); err != nil {
+		return getResponse("user not found")
+	}
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(p)); err != nil {
+		return getResponse("invalid login")
+	}
+	if err := db.DeleteStruct(&user); err != nil {
 		return getResponse("server error")
 	}
 	return getResponse("ok")
