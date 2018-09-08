@@ -87,7 +87,11 @@ var testUsers = []testUser{
 
 // Register validates the user signup form and saves to db
 func TestValidRegister(t *testing.T) {
-
+	db, err := database.OpenTestDB()
+	if err != nil {
+		t.Error("server error")
+	}
+	defer db.Close()
 	for _, r := range testUsers {
 		if err := LoginValid(r.user, r.password); err != nil {
 			t.Error("invalid username or password")
@@ -113,15 +117,25 @@ func TestValidRegister(t *testing.T) {
 			ResetCode:       r.reset,
 			Username:        r.user,
 		}
-
-		db, err := database.OpenTestDB()
-		if err != nil {
-			t.Error("server error")
-		}
-		defer db.Close()
 		if err := db.Save(&user); err == storm.ErrAlreadyExists {
 			t.Error("user already signed up")
 		}
+	}
+}
 
+func TestConfirmAccount(t *testing.T) {
+	db, err := database.OpenTestDB()
+	if err != nil {
+		t.Error("server error")
+	}
+	defer db.Close()
+	for _, u := range testUsers {
+		var user User
+		if err := db.One("ResetCode", u.reset, &user); err != nil {
+			t.Error("failed seraching user by reset code")
+		}
+		if err := db.UpdateField(&User{ID: user.ID}, "Confirmed", true); err != nil {
+			t.Error("failed trying to update user to confirmed true")
+		}
 	}
 }
