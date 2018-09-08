@@ -153,3 +153,31 @@ func TestUpdateContributionAddress(t *testing.T) {
 		}
 	}
 }
+
+func TestResetPassword(t *testing.T) {
+	db, err := database.OpenTestDB()
+	if err != nil {
+		t.Error("opening test db failed")
+	}
+	defer db.Close()
+	hash, err := HashPassword("this_is_a_test")
+	if err != nil {
+		t.Error("password hashing failed")
+	}
+
+	for _, u := range testCompleteUsers {
+		var user User
+		err = db.One("Username", u.user, &user)
+		if err != nil {
+			t.Error("can't locate user in db")
+		}
+		if uuid.Equal(user.ResetCode, u.reset) {
+			if err := db.UpdateField(&User{Username: u.user}, "Password", hash); err != nil {
+				t.Error("updating password field failed")
+			}
+			newResetCode := uuid.Must(uuid.NewV4())
+			db.UpdateField(&User{ResetCode: u.reset}, "ResetCode", newResetCode)
+		}
+		t.Error("reset codes not equal")
+	}
+}
