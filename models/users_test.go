@@ -139,3 +139,17 @@ func TestConfirmAccount(t *testing.T) {
 		}
 	}
 }
+
+func TestUpdateContributionAddress(t *testing.T) {
+	db, err := database.OpenTestDB()
+	if err != nil {
+		t.Error("server error")
+	}
+	defer db.Close()
+
+	for _, u := range testCompleteUsers {
+		if err := db.UpdateField(&User{ID: u.id}, "EthereumAddress", "0xCaE9eFE97895EF43e72791a10254d6abDdb17Ae9"); err != nil {
+			t.Error("failed to update eth address")
+		}
+	}
+}
