@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/studentofjs/moonrock-server/middleware"
+
 	"github.com/gin-gonic/gin"
 	"github.com/studentofjs/moonrock-server/database"
 	"github.com/studentofjs/moonrock-server/models"
@@ -12,10 +14,11 @@ import (
 )
 
 func apiRouter() {
-	r := gin.Default()    // Init Router
-	r.Use(gin.Logger())   // log to Stdout
-	r.Use(gin.Recovery()) // recover from panics with 500
-	r.Use(cors.Default()) // enable Cross-Origin Resource Sharing
+	r := gin.Default()                     // Init Router
+	r.Use(gin.Logger())                    // log to Stdout
+	r.Use(gin.Recovery())                  // recover from panics with 500
+	r.Use(cors.Default())                  // enable Cross-Origin Resource Sharing
+	r.Use(middleware.LimitConnections(10)) // limit concurrent connections to 10
 	r.LoadHTMLGlob("templates/*")
 	r.LoadHTMLGlob("templates/email/*")
 	RegisterAPI(r)            // register router
