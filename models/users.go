@@ -21,7 +21,7 @@ type User struct {
 	ID              int    `storm:"id,increment"` // primary key with auto increment
 	LastName        string // this field will not be indexed
 	Password        []byte // this field will not be indexed
-	ResetCode       string // this field will not be indexed
+	ResetCode       string `storm:"index"`  // this field will be indexed
 	Username        string `storm:"unique"` // this field will be indexed with a unique constraint
 }
 
