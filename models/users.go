@@ -144,7 +144,7 @@ func Register(a, c, e, f, l, p, u string) *Response {
 	}
 
 	r := mailer.NewRequest([]string{u}, "Moonrock Account Confirmation")
-	r.Send("templates/register_template.html", map[string]string{
+	r.Send("templates/email/register_template.html", map[string]string{
 		"country":  c,
 		"ethereum": e,
 		"name":     f,

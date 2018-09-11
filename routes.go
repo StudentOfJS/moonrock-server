@@ -30,8 +30,8 @@ func RegisterAPI(router *gin.Engine) {
 		time.Hour*120,
 		&UserVerifier{},
 		nil)
-	router.POST("/token", s.UserCredentials)
-	router.POST("/auth", s.ClientCredentials)
+	router.POST("/api/token", s.UserCredentials)
+	router.POST("/api/auth", s.ClientCredentials)
 
 	authorized := router.Group("/u")
 	// use the Bearer Athentication middleware
@@ -43,11 +43,12 @@ func RegisterAPI(router *gin.Engine) {
 	// update user details
 	authorized.PUT("/update", handlers.UpdateUserDetailsHandler)
 
-	router.PUT("/confirm", handlers.ConfirmAccountHandler)          // confirm user account
-	router.POST("/register", handlers.RegisterHandler)              // register user account
-	router.PUT("/reset_password", handlers.ResetPasswordHandler)    // reset password action
-	router.POST("/forgot_password", handlers.ForgotPasswordHandler) // forgot password process
-	router.POST("/tgenews", handlers.TGENewsletterHandler)          // signup to token sale news
+	noAuth := router.Group("/api")
+	noAuth.PUT("/confirm", handlers.ConfirmAccountHandler)          // confirm user account
+	noAuth.POST("/register", handlers.RegisterHandler)              // register user account
+	noAuth.PUT("/reset_password", handlers.ResetPasswordHandler)    // reset password action
+	noAuth.POST("/forgot_password", handlers.ForgotPasswordHandler) // forgot password process
+	noAuth.POST("/tgenews", handlers.TGENewsletterHandler)          // signup to token sale news
 }
 
 // UserVerifier provides user credentials verifier
@@ -57,6 +58,7 @@ type UserVerifier struct {
 // ValidateUser validates username and password returning an error if the user credentials are wrong
 func (*UserVerifier) ValidateUser(username, password, scope string, req *http.Request) error {
 	err := models.LoginCheck(username, password)
+	fmt.Println(err.Error())
 	return err
 }
 
