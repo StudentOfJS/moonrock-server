@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/studentofjs/moonrock-server/database"
@@ -21,6 +22,7 @@ func apiRouter() {
 	r.Use(middleware.LimitConnections(10))                      // limit concurrent connections to 10
 	r.LoadHTMLGlob("templates/email/*")                         // pre-load email templates
 	r.Use(static.Serve("/", static.LocalFile("./views", true))) // serve static site
+	r.Use(gzip.Gzip(gzip.DefaultCompression))                   // use gzip with default compression
 	RegisterAPI(r)                                              // register router
 	log.Fatal(r.Run(":4000"))                                   // log server error
 }
