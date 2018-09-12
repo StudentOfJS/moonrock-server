@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gin-contrib/gzip"
+	"github.com/gin-contrib/secure"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/studentofjs/moonrock-server/database"
@@ -23,8 +24,22 @@ func apiRouter() {
 	r.LoadHTMLGlob("templates/email/*")                         // pre-load email templates
 	r.Use(static.Serve("/", static.LocalFile("./views", true))) // serve static site
 	r.Use(gzip.Gzip(gzip.DefaultCompression))                   // use gzip with default compression
-	RegisterAPI(r)                                              // register router
-	log.Fatal(r.Run(":4000"))                                   // log server error
+	r.Use(secure.New(secure.Config{
+		AllowedHosts:          []string{"localhost", "ssl.example.com"},
+		SSLRedirect:           true,
+		SSLHost:               "ssl.example.com",
+		STSSeconds:            315360000,
+		STSIncludeSubdomains:  true,
+		FrameDeny:             true,
+		ContentTypeNosniff:    true,
+		BrowserXssFilter:      true,
+		ContentSecurityPolicy: "default-src 'self'",
+		IENoOpen:              true,
+		ReferrerPolicy:        "strict-origin-when-cross-origin",
+		SSLProxyHeaders:       map[string]string{"X-Forwarded-Proto": "https"},
+	}))
+	RegisterAPI(r)            // register router
+	log.Fatal(r.Run(":4000")) // log server error
 }
 
 func init() {
