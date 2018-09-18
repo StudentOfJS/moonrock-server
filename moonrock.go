@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gin-contrib/gzip"
@@ -28,6 +27,7 @@ func apiRouter() {
 }
 
 func init() {
+
 	db, err := database.OpenProdDB("./database/")
 	if err != nil {
 		log.Fatalf("database error:%v", err)
@@ -63,6 +63,5 @@ func init() {
 }
 
 func main() {
-	fmt.Println("Rest API v1.0")
 	apiRouter()
 }

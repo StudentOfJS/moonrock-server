@@ -34,7 +34,7 @@ func RegisterAPI(router *gin.Engine) {
 	router.POST("/api/auth", s.ClientCredentials)
 
 	authorized := router.Group("/u")
-	// use the Bearer Athentication middleware
+	// use the Bearer Authentication middleware
 	authorized.Use(oauth.Authorize(secrets.SecretKey, nil))
 	// update user's contribution address
 	authorized.PUT("/address", handlers.ContributionAddressHandler)
