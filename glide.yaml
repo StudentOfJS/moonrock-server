@@ -1,0 +1,25 @@
+package: github.com/studentofjs/moonrock-server
+import:
+- package: errors
+- package: github.com/asdine/storm
+  version: v2.1.2
+- package: github.com/gin-contrib/gzip
+- package: github.com/gin-gonic/contrib
+  subpackages:
+  - static
+- package: github.com/gin-gonic/gin
+  version: v1.3.0
+- package: github.com/google/uuid
+  version: 1.0.0
+- package: github.com/maxzerbini/oauth
+- package: github.com/satori/go.uuid
+  version: ~1.2.0
+- package: github.com/subosito/gotenv
+  version: ^1.1.1
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+- package: gopkg.in/gin-contrib/cors.v1
+  version: v1.2
+- package: gopkg.in/validator.v2
+- package: time
