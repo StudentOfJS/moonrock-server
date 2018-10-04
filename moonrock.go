@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
+	"os"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/contrib/static"
@@ -13,7 +16,22 @@ import (
 	cors "gopkg.in/gin-contrib/cors.v1"
 )
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "./favicon.ico")
+}
+
+func GetPort() string {
+	var port = os.Getenv("PORT")
+	// Set a default port if there is nothing in the environment
+	if port == "" {
+		port = "4000"
+		fmt.Println("INFO: No PORT environment variable detected, defaulting to " + port)
+	}
+	return ":" + port
+}
+
 func apiRouter() {
+	http.HandleFunc("/favicon.ico", faviconHandler)
 	r := gin.Default()                                          // Init Router
 	r.Use(gin.Logger())                                         // log to Stdout
 	r.Use(gin.Recovery())                                       // recover from panics with 500
@@ -23,7 +41,7 @@ func apiRouter() {
 	r.Use(static.Serve("/", static.LocalFile("./views", true))) // serve static site
 	r.Use(gzip.Gzip(gzip.DefaultCompression))                   // use gzip with default compression
 	RegisterAPI(r)                                              // register router
-	log.Fatal(r.Run(":4000"))                                   // log server error
+	log.Fatal(r.Run(GetPort()))                                 // log server error
 }
 
 func init() {
