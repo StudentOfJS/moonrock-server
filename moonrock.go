@@ -33,13 +33,13 @@ func GetPort() string {
 func apiRouter() {
 	http.HandleFunc("/favicon.ico", faviconHandler)
 	r := gin.Default()                                          // Init Router
+	r.Use(gzip.Gzip(gzip.DefaultCompression))                   // use gzip with default compression
 	r.Use(gin.Logger())                                         // log to Stdout
 	r.Use(gin.Recovery())                                       // recover from panics with 500
 	r.Use(cors.Default())                                       // enable Cross-Origin Resource Sharing
 	r.Use(middleware.LimitConnections(10))                      // limit concurrent connections to 10
 	r.LoadHTMLGlob("templates/email/*")                         // pre-load email templates
 	r.Use(static.Serve("/", static.LocalFile("./views", true))) // serve static site
-	r.Use(gzip.Gzip(gzip.DefaultCompression))                   // use gzip with default compression
 	RegisterAPI(r)                                              // register router
 	log.Fatal(r.Run(GetPort()))                                 // log server error
 }
